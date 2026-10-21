@@ -1,0 +1,9 @@
+.git/
+.github/
+tests/
+tools/
+dist/
+README.md
+SECURITY.md
+CHANGELOG.md
+design-qa.md
