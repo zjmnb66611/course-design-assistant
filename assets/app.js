@@ -1,4 +1,4 @@
-var STEPS=["任务书","参数确认","计算核验","图表","计算书","导出"];
+var STEPS=["说说需求","参数确认","计算核验","图表","计算书","导出"];
 var state={taskbook:null,parsed:null,overrides:{},conflictResolved:{},input:null,out:null,srcLines:[],reportMD:null};
 var maxUnlocked=1;
 var currentStep=1;
@@ -42,13 +42,15 @@ function switchTaskTab(which){
   document.getElementById("tabFile").className="tab"+(which==="file"?" active":"");
 }
 function loadDemo(){
+  state.intakeSkipped=[];
   taskReadVersion++; state.parsed=null; state.overrides={}; state.conflictResolved={};
   document.getElementById("parseResult").replaceChildren(); invalidateResult(true);
   switchTaskTab("paste");
   document.getElementById("taskText").value="某教学楼楼面简支梁课程设计任务书\n\n一、设计资料\n某教学楼楼面采用一根简支钢梁，计算跨度 L = 6 m。\n梁截面为矩形，尺寸 100 × 200 mm。\n材料为 Q235 钢，弹性模量 E = 206 GPa，许用应力 160 MPa。\n楼面构造及设备传来均布荷载 q = 10 kN/m（已含自重）。\n另有一台固定设备，集中荷载 P = 20 kN，作用位置距左端支座 2 m。\n\n二、设计要求\n1. 计算支座反力，绘制剪力图与弯矩图；\n2. 校核梁的正应力强度；\n3. 计算最大挠度，要求挠度不超过 L/250；\n4. 提交完整计算书，含公式推导与数据表格。";
-  msg("parseMsg","ok","已载入示例任务书，点击「解析任务书」继续。");
+  msg("parseMsg","ok","已载入示例，点击“帮我整理，继续”即可。");
 }
 function clearTask(){
+  state.intakeSkipped=[];
   taskReadVersion++;
   document.getElementById("taskText").value="";
   document.getElementById("parseResult").innerHTML="";
@@ -83,7 +85,7 @@ document.getElementById("taskFile").addEventListener("change",function(ev){
     state.overrides={};state.conflictResolved={};document.getElementById("parseResult").replaceChildren();
     document.getElementById("taskText").value=text;scheduleDraft();
     meta.innerHTML='已读取 <b>'+esc(f.name)+'</b>（'+f.size+' 字节），不会上传；如开启本机草稿，将保存于此浏览器。';
-    msg("parseMsg","ok","文件已读入，点击「解析任务书」继续。");
+    msg("parseMsg","ok","文件已读入，点击“帮我整理，继续”即可。");
   };
   rd.onerror=function(){ meta.innerHTML='<span style="color:var(--c-danger)">读取失败，请重试或改用粘贴。</span>'; };
   rd.readAsText(f,"utf-8");
@@ -99,19 +101,22 @@ function parseTask(){
     if(!state.taskbook){ msg("parseMsg","err","请先选择文件或改用粘贴方式。"); return; }
     text=state.taskbook.text;
   }
-  if(!text.trim()){ msg("parseMsg","err","任务书内容为空：请粘贴文字或导入 .txt/.md 文件。"); return; }
+  if(!text.trim()){
+    text="我想先了解梁的课设，还没有具体数据。";
+    document.getElementById("taskText").value=text;state.taskbook={text:text,name:"开始整理需求"};
+  }
   if(text.includes("\u0000")){msg("parseMsg","err","任务书包含空字节，请使用纯文本内容。");return;}
   if(text.length>200000){ msg("parseMsg","err","任务书超过 20 万字符，疑似粘贴了非任务书内容，请检查。"); return; }
   var parsed=parseTaskbook(text);
   invalidateResult(true);
   state.parsed=parsed; state.overrides={}; state.conflictResolved={};
-  var f=parsed.found, html=[], k, n=0;
-  html.push('<div class="tb-wrap"><table class="tb"><tr><th>参数</th><th>识别值</th><th>单位</th><th>来源</th></tr>');
+  var f=parsed.found, html=[intakeSummary(parsed)], k, n=0;
+  html.push('<details class="fold intake-details"><summary>查看识别明细与原文来源</summary><div class="tb-wrap"><table class="tb"><tr><th>参数</th><th>识别值</th><th>单位</th><th>来源</th></tr>');
   var NAMES={L_m:"跨度 L",q_kN_m:"均布荷载 q",P_kN:"集中荷载 P",a_m:"作用位置 a",E_GPa:"弹性模量 E",
-             sigma_allow_MPa:"许用应力",deflection_limit_divisor:"挠度限值",section:"截面",material_name:"材料"};
+             sigma_allow_MPa:"许用应力",deflection_limit_divisor:"挠度限值",section:"截面",material_name:"材料",b_mm:"截面宽",h_mm:"截面高",d_mm:"直径"};
   for(k in f){ if(!f.hasOwnProperty(k)) continue; n++;
     var v=f[k], val;
-    if(k==="section") val=v.b_mm+"×"+v.h_mm+" mm";
+    if(k==="section") val=v.shape==="circle"?"圆截面，直径 "+v.d_mm+" mm":v.b_mm+"×"+v.h_mm+" mm";
     else if(k==="material_name") val=v.material;
     else if(k==="deflection_limit_divisor") val="L/"+v.value;
     else val=v.value+" "+(v.unit||"");
@@ -122,7 +127,7 @@ function parseTask(){
   html.push('</table></div>');
   var miss=[];
   parsed.missing.forEach(function(m){ if(typeof m==="object"&&NAMES[m.key]!==undefined) miss.push(NAMES[m.key]); else if(typeof m==="string"&&NAMES[m]) miss.push(NAMES[m]); });
-  html.push('<div style="margin-top:10px;font-size:13.5px">共识别 <b>'+n+'</b> 项参数'+(miss.length?('；<span style="color:var(--c-warn)"><b>缺失 '+miss.length+' 项</b>：'+esc(miss.join("、"))+'（可载入示例后手动补齐）</span>'):'；无缺失项')+'。</div>');
+  html.push('<div style="margin-top:10px;font-size:13.5px">共整理 <b>'+n+'</b> 项信息'+(miss.length?('；还没确定的条件：'+esc(miss.join("、"))+'，可以稍后再补。'):'；已保留来源。')+'</div></details>');
   if(parsed.unrecognized_unit.length){
     html.push('<div class="msg warn show" style="margin-top:10px">以下数值的单位无法识别，不会自动填入参数，请换算后人工填写：'+
       parsed.unrecognized_unit.map(function(u){return esc(u.key)+"（第"+u.item.line+"行："+esc(u.item.snippet)+"）";}).join("；")+'</div>');
@@ -137,9 +142,60 @@ function parseTask(){
       state.conflictResolved[c.key]={idx:ci,items:c.items,keyName:c.key};
     });
   }
-  html.push('<div class="btn-row"><button class="btn btn-success" data-action="fillForm">带入参数表单 →</button></div>');
+  html.push('<div class="btn-row"><button class="btn btn-success" data-action="fillForm">查看已知参数，继续 →</button></div>');
   document.getElementById("parseResult").innerHTML=html.join("");
-  msg("parseMsg","ok","解析完成（原文共 "+parsed.source_chars+" 字符，来源行号已保留）。冲突项请先裁决再带入。");
+  clearMsg("parseMsg");updateWorkspace();scheduleDraft();
+  document.getElementById("parseResult").scrollIntoView({block:"start",behavior:matchMedia("(prefers-reduced-motion: reduce)").matches?"instant":"smooth"});
+}
+
+function intakeSummary(parsed){
+  var f=parsed.found,known=[],question=parsed.intake_questions.find(function(q){return !(state.intakeSkipped||[]).includes(q.key);});
+  state.intakeQuestion=question;
+  var labels={L_m:["梁长","m"],q_kN_m:["每米均布力","kN/m"],P_kN:["集中力","kN"],a_m:["距左支座","m"],E_GPa:["弹性模量","GPa"],b_mm:["截面宽","mm"],h_mm:["截面高","mm"],d_mm:["直径","mm"]};
+  Object.keys(labels).forEach(function(key){if(f[key]&&f[key].unit_ok!==false)known.push(labels[key][0]+" "+fnum(f[key].value)+" "+labels[key][1]);});
+  if(f.section&&f.section.unit_ok!==false&&!f.b_mm&&!f.d_mm)known.push(f.section.shape==="circle"?"圆截面，直径 "+fnum(f.section.d_mm)+" mm":"矩形截面 "+fnum(f.section.b_mm)+" × "+fnum(f.section.h_mm)+" mm");
+  if(f.material_name)known.push(f.material_name.material);
+  var html='<div class="intake-answer"><div class="intake-answer-title">'+(known.length?"先记下这些，我们接着来。":"可以，先从你知道的一点开始。")+'</div>';
+  html+=known.length?'<div class="known-facts">'+known.map(function(t){return '<span>'+esc(t)+'</span>';}).join("")+'</div>':'<p>不用一次写全，也不用先查齐资料。你的描述已经保留。</p>';
+  if(parsed.unsupported.length)html+='<p class="intake-scope">'+esc(parsed.unsupported.join("；"))+'。可以先整理原文，当前计算模块仍为简支梁。</p>';
+  if(question){
+    html+='<label class="followup-question" for="followupText">'+esc(question.label)+'</label><p>'+esc(question.example)+'</p><div class="followup-row"><input type="text" id="followupText" maxlength="2000" autocomplete="off" placeholder="再说一句就行，不知道也可以先跳过"><button class="btn btn-primary" data-action="appendIntake">补充这句话</button></div><button class="text-btn" data-action="skipIntakeQuestion">这项先留空，问我下一项</button><small>可以继续口语补充，也可先到参数页看看；数据齐了再正式计算。</small>';
+  }else if(!parsed.unsupported.length)html+='<p>'+(parsed.intake_questions.length?'已知信息已保留，暂时不清楚的仍然留空，可以到参数页继续完善。':'主要计算条件已经有了。点下面的按钮核对参数，就可以继续计算。')+'</p>';
+  return html+'</div>';
+}
+function useIntakeStarter(kind){
+  var starters={idea:"我想做梁的课设，还不知道要准备什么。",partial:"我只知道梁长六米，其他数据还没确定。",spoken:"帮我算一根六米长的简支梁，钢的，上面每米压十千牛。"};
+  if(!Object.hasOwn(starters,kind))return;
+  var textarea=document.getElementById("taskText");
+  if(textarea.value.trim()){msg("parseMsg","warn","已有内容已保留。你可以直接点击“帮我整理，继续”，不用替换成示例。");textarea.focus();return;}
+  switchTaskTab("paste");textarea.value=starters[kind];parseTask();
+}
+function appendIntake(){
+  var input=document.getElementById("followupText"),answer=input&&input.value.trim();
+  if(!answer){msg("parseMsg","warn","再说一句已知条件就行，也可以点“查看已知参数”先跳过。");return;}
+  if(/^(?:我也?|暂时|还)?(?:不知道|不清楚|没确定|没想好|不确定)[。！!？?]?$/.test(answer)){skipIntakeQuestion();return;}
+  var question=state.intakeQuestion,normalized=normalizeIntakeText(answer),line=answer;
+  if(/^[负零〇一二两三四五六七八九十百千万亿]+(?:点[零〇一二三四五六七八九]+)?$/.test(normalized))normalized=String(chineseNumber(normalized));
+  if(question){
+    var defaults={L_m:"m",q_kN_m:"kN/m",P_kN:"kN",a_m:"m",E_GPa:"GPa"};
+    if(/^-?\d+(?:\.\d+)?$/.test(normalized)&&defaults[question.key])line=question.prefix+normalized+" "+defaults[question.key]+"（按问题提示单位）";
+    else if(/^-?\d+(?:\.\d+)?\s*(?:mm|cm|m|毫米|厘米|米|kN\/m|N\/m|kN|N|千牛|牛|GPa|MPa)$/.test(normalized)){
+      line=question.prefix+answer;
+      if(question.key==="q_kN_m"&&/(?:kN|N|千牛|牛)$/.test(normalized))line+="/米";
+    }else if(/^(?:没有|无|没了)$/.test(answer)&&question.key==="q_kN_m")line="没有均布荷载";
+    else if(/^(?:没有|无|没了)$/.test(answer)&&question.key==="P_kN")line="没有集中力";
+    else if(/^(?:在)?(?:正中间|中间|跨中|中点)$/.test(answer)&&question.key==="a_m")line="集中力在正中间";
+    else if(question.key==="section"&&/^\d+(?:\.\d+)?\s*[×xX*]\s*\d/.test(normalized))line="矩形截面 "+answer;
+  }
+  var combined=document.getElementById("taskText").value+"\n补充："+line;
+  if(combined.length>200000){msg("parseMsg","err","描述已达到长度限制，请精简后再补充。");return;}
+  switchTaskTab("paste");document.getElementById("taskText").value=combined;taskReadVersion++;parseTask();
+}
+function skipIntakeQuestion(){
+  if(!state.intakeQuestion)return;
+  state.intakeSkipped=state.intakeSkipped||[];
+  if(!state.intakeSkipped.includes(state.intakeQuestion.key))state.intakeSkipped.push(state.intakeQuestion.key);
+  parseTask();
 }
 
 function applyConflictOverrides(){
@@ -188,19 +244,24 @@ function fillForm(){
   setVal("E_GPa","in_E","src_E");
   setVal("sigma_allow_MPa","in_sa","src_sa");
   setVal("deflection_limit_divisor","in_dv","src_dv");
+  document.getElementById("in_mat").value="";
   if(f.material_name&&MAT_PRESETS[f.material_name.material]&&!f.E_GPa){
     document.getElementById("in_mat").value=MAT_PRESETS[f.material_name.material].id;
   }
-  if(o.section_b!==undefined||(f.section&&f.section.unit_ok!==false)){
+  if(f.section&&f.section.shape==="circle"&&f.section.unit_ok!==false){
+    document.getElementById("in_shape").value="circle";document.getElementById("in_d").value=f.section.d_mm;
+    document.getElementById("src_sec").textContent="来自原文第"+f.section.line+"行";
+  }else if(o.section_b!==undefined||(f.section&&f.section.unit_ok!==false)){
     document.getElementById("in_shape").value="rect";
     document.getElementById("in_b").value=(o.section_b!==undefined)?o.section_b:f.section.b_mm;
     document.getElementById("in_h").value=(o.section_h!==undefined)?o.section_h:f.section.h_mm;
     var ss=document.getElementById("src_sec");
     ss.textContent=(o.section_b!==undefined?"已人工修正":"来自任务书第"+f.section.line+"行");
     ss.className="src"+(o.section_b!==undefined?" mod":"");
-  } else { document.getElementById("in_b").value="";document.getElementById("in_h").value="";document.getElementById("src_sec").textContent=""; }
+  } else { document.getElementById("in_shape").value="rect";document.getElementById("in_b").value=f.b_mm?f.b_mm.value:"";document.getElementById("in_h").value=f.h_mm?f.h_mm.value:"";document.getElementById("src_sec").textContent="可以先保留已知尺寸，其余稍后补充"; }
   shapeUI();
   unlock(2);
+  if(state.parsed.intake_questions.length)msg("valMsg","warn","已知数据已带入，空着的可以继续补。没有的荷载请明确填 0；条件齐了才会计算，不会自动补上未知数值。");
 }
 
 var MAT_PRESETS={Q235:{id:"Q235",E:206,sa:160,name:"Q235 钢"},Q345:{id:"Q345",E:206,sa:230,name:"Q345 钢"},
@@ -253,6 +314,9 @@ function goCalc(){
     var unknownMap={q:"q",P:"P",a:"a",E:"E",L:"L","σ":"sa"};
     var pending=state.parsed.unrecognized_unit.some(function(u){return unknownMap[u.key]&&document.getElementById("in_"+unknownMap[u.key]).value==="";});
     if(pending){msg("valMsg","err","任务书存在未知单位，请换算后明确填写对应参数（无荷载时请填 0）。");return;}
+  }
+  if(document.getElementById("in_q").value===""||document.getElementById("in_P").value===""){
+    msg("valMsg","warn","先确认荷载就能继续：每米均布力和单个集中力，有就填数值，没有就填 0。不确定的可返回“说说需求”继续口语补充。");return;
   }
   var inp=collectInput();
   state.input=inp;

@@ -3,7 +3,7 @@
  * 课设智辅 JS 引擎（Euler–Bernoulli 线弹性简支梁）
  * 计算逻辑与文字生成严格分离：calc/verify 只产数值，renderReport 只消费数值
  * ============================================================ */
-var ENGINE_VERSION = "2.0.0";
+var ENGINE_VERSION = "2.1.0";
 var N_SAMPLES = 4001;
 var LIMITS = {Lmin:0.05, Lmax:30, qmax:5000, Pmax:10000, Emin:0.001, Emax:1200};
 
@@ -259,7 +259,7 @@ function matchUnit(u,um){
   return null;
 }
 function findVals(text,alts,scale,um){
-  var out=[],lines=text.split(/\r?\n/),rx=new RegExp("(?:"+alts+")[^0-9\\-]{0,12}(-?\\d+(?:\\.\\d+)?(?:[eE][+-]?\\d+)?)\\s*([a-zA-Zμ·/]+|毫米|厘米|米|千牛|牛)?","g");
+  var out=[],lines=text.split(/\r?\n/),rx=new RegExp("(?:"+alts+")(?:\\s|[=:：＝\\[\\]()（）]|[A-Za-z_σδτ]|大概|大约|大致|约|为|是|有|取|差不多|支座){0,12}(-?\\d+(?:\\.\\d+)?(?:[eE][+-]?\\d+)?)\\s*([a-zA-Zμ·/]+|毫米|厘米|米|千牛|牛)?","g");
   for(var i=0;i<lines.length;i++){
     var m,ln=lines[i];
     rx.lastIndex=0;
@@ -270,22 +270,87 @@ function findVals(text,alts,scale,um){
   }
   return out;
 }
+/* Everyday input is normalized deterministically; unknown facts stay unknown. */
+function chineseNumber(token){
+  var digits={零:0,〇:0,一:1,二:2,两:2,三:3,四:4,五:5,六:6,七:7,八:8,九:9};
+  var negative=token[0]==="负";if(negative)token=token.slice(1);
+  var parts=token.split("点"),value=0,section=0,current=0;
+  if(!/[十百千万亿]/.test(parts[0]))value=Number(Array.from(parts[0]).map(function(c){return digits[c];}).join(""));
+  else{
+    Array.from(parts[0]).forEach(function(c){
+      if(Object.hasOwn(digits,c))current=digits[c];
+      else if(c==="万"){section=(section+current)*10000;value+=section;section=0;current=0;}
+      else if(c==="亿"){value=(value+section+current)*100000000;section=0;current=0;}
+      else {section+=(current||1)*({十:10,百:100,千:1000}[c]||0);current=0;}
+    });value+=section+current;
+  }
+  if(parts[1])value+=Number("0."+Array.from(parts[1]).map(function(c){return digits[c];}).join(""));
+  return negative?-value:value;
+}
+function normalizeIntakeText(text){
+  return text.replace(/[０-９Ａ-Ｚａ-ｚ．＝／]/g,function(c){return String.fromCharCode(c.charCodeAt(0)-0xfee0);})
+    .replace(/公分/g,"厘米").replace(/公尺/g,"米").replace(/千牛顿/g,"千牛").replace(/牛顿/g,"牛")
+    .replace(/(\d+(?:\.\d+)?)\s*(万|千|百)\s*(毫米|厘米|米|牛|帕)/g,function(s,n,magnitude,unit){return String(Number(n)*({万:10000,千:1000,百:100}[magnitude]))+unit;})
+    .replace(/(\d+(?:\.\d+)?\s*(?:毫米|厘米|米|千牛|牛|GPa|MPa|kPa|Pa|[kK]?[nN]|[cm]?m))|([负零〇一二两三四五六七八九十百千万亿]+?(?:点[零〇一二三四五六七八九]+)?)(\s*(?:毫米|厘米|米|千牛|牛|GPa|MPa|kPa|Pa|[kK]?[nN]|[cm]?m|[×乘]))/g,function(s,arabic,chinese,unit){return arabic||String(chineseNumber(chinese))+unit;})
+    .replace(/千牛\s*(?:每米|\/米)/g,"kN/m").replace(/牛\s*(?:每米|\/米)/g,"N/m")
+    .replace(/\bkn\b/gi,"kN").replace(/\bgpa\b/gi,"GPa").replace(/\bmpa\b/gi,"MPa")
+    .replace(/(\d)\s*乘\s*(?=\d)/g,"$1 × ");
+}
+function speechFacts(text){
+  var number="(-?\\d+(?:\\.\\d+)?(?:[eE][+-]?\\d+)?)";
+  var length="(mm|cm|m(?![a-zA-Z/])|毫米|厘米|米)";
+  var force="(kN|N(?![a-zA-Z])|千牛|牛)(?!\\s*(?:/|每))";
+  var filler="(?:\\s|[:：=]|大概|大约|大致|差不多|约|有|是|为|取|左右){0,18}";
+  var lines=text.split(/\r?\n/),normalized=normalizeIntakeText(text).split(/\r?\n/);
+  var facts={L:[],q:[],P:[],a:[],right:[],b:[],h:[],d:[]};
+  function scan(key,pattern,units,scale){
+    var rx=new RegExp(pattern,"g");
+    normalized.forEach(function(line,index){var m;rx.lastIndex=0;while((m=rx.exec(line))!==null){var unit=matchUnit(m[2],units);if(unit!==null)facts[key].push({value:Number(m[1])*unit*(scale||1),unit:m[2],unit_ok:true,line:index+1,snippet:lines[index].trim().slice(0,80)});}});
+  }
+  scan("L","(?:梁(?:长|的长度)|(?:长|跨度))"+filler+number+"\\s*"+length,ULEN);
+  scan("L","梁"+filler+number+"\\s*"+length,ULEN);
+  scan("L",number+"\\s*"+length+"\\s*(?:长的|长|的)(?:简支|钢|木)?梁",ULEN);
+  scan("q","每(?:米|m)"+filler+"(?:压|承受|放|有|荷载|载荷|重){0,4}"+filler+number+"\\s*"+force,UFRC);
+  scan("P","(?:集中力|集中荷载|集中载荷|点荷载|设备(?:重|荷载)?|中间(?:放|压|有)|跨中(?:放|压|有))"+filler+number+"\\s*"+force,UFRC);
+  scan("P",number+"\\s*"+force+"(?:重)?的(?:设备|集中力|点荷载)",UFRC);
+  scan("a","(?:离|距离|距)左(?:边|端|侧|头|支座)(?:支座|A)?"+filler+number+"\\s*"+length,ULEN);
+  scan("right","(?:离|距离|距)右(?:边|端|侧|头|支座)(?:支座|B)?"+filler+number+"\\s*"+length,ULEN);
+  scan("b","(?:截面宽|宽度|宽|b\\b)"+filler+number+"\\s*"+length,ULEN,1000);
+  scan("h","(?:截面高|高度|高|h\\b)"+filler+number+"\\s*"+length,ULEN,1000);
+  scan("d","(?:直径|圆钢直径|d\\b)"+filler+number+"\\s*"+length,ULEN,1000);
+  normalized.forEach(function(line,index){
+    function zero(key,pattern){if(pattern.test(line))facts[key].push({value:0,unit:key==="q"?"kN/m":"kN",unit_ok:true,line:index+1,snippet:lines[index].trim().slice(0,80)});}
+    zero("P",/(?:没有|没|无|不设|不考虑|不加)(?:任何)?(?:集中(?:荷载|力|载荷)|设备荷载)|只(?:有|受|考虑|承受)(?:满跨)?均布/);
+    zero("q",/(?:没有|没|无|不设|不考虑|不加)(?:任何)?(?:均布(?:荷载|载荷)?|分布荷载)|只(?:有|受|考虑|承受)(?:一个|单个)?集中(?:力|荷载)/);
+    if(/(?:没有|无|不加)(?:任何)?荷载/.test(line)){zero("P",/.*/);zero("q",/.*/);}
+  });
+  return facts;
+}
 function parseTaskbook(text){
+  var originalText=text,originalLines=text.split(/\r?\n/),spoken=speechFacts(text);
+  text=normalizeIntakeText(text);
   var out={found:{},missing:[],conflicts:[],unrecognized_unit:[],source_chars:text.length};
   out.unsupported=[];
   if(/悬臂梁|连续梁|外伸梁|固支梁|三角形荷载|梯形荷载|局部均布|多个集中荷载|两[个处]集中荷载/.test(text)) out.unsupported.push("任务包含当前简支梁模型未支持的边界或荷载，请核对后改用对应模型");
+  if(!/梁/.test(text)&&/减速器|齿轮|电路|单片机|数据库|电机设计/.test(text))out.unsupported.push("这段描述涉及当前工作台尚未支持的课设类型，已保留原文，但不能套用简支梁公式计算");
   var L=findVals(text,"跨度|计算跨度|梁长|梁的长度|长度",1,ULEN);
-  var q=findVals(text,"均布荷载|均布载荷|线荷载|分布荷载|荷载集度",1000,ULINE);
+  var q=findVals(text,"均布荷载|均布载荷|线荷载|分布荷载|荷载集度|均布(?=\\s*\\d)",1000,ULINE);
   var P=findVals(text,"集中荷载|集中力|集中载荷",1000,UFRC);
   var a=findVals(text,"作用位置|距左端|距A端|距左支座|作用点距|距支座A|距离左端",1,ULEN);
   var E=findVals(text,"弹性模量|杨氏模量",1,UPRE);
   var sa=findVals(text,"许用应力|许用正应力|设计应力|允许应力",1,{MPa:1,Pa:1e-6,kPa:1e-3,GPa:1000});
+  L=L.concat(spoken.L);q=q.concat(spoken.q.map(function(it){return Object.assign({},it,{value:it.value*1000});}));P=P.concat(spoken.P.map(function(it){return Object.assign({},it,{value:it.value*1000});}));a=a.concat(spoken.a);
+  [["L",L,"\\bL(?=\\s*(?:[:=：]|-?\\d))",ULEN],["q",q,"\\bq(?=\\s*(?:[:=：]|-?\\d))",ULINE],["P",P,"\\bP(?=\\s*(?:[:=：]|-?\\d))",UFRC],["a",a,"\\ba(?=\\s*(?:[:=：]|-?\\d))",ULEN],["E",E,"\\bE(?=\\s*(?:[:=：]|-?\\d))",UPRE]].forEach(function(pair){
+    var values=findVals(text,pair[2],pair[0]==="q"||pair[0]==="P"?1000:1,pair[3]);pair[1].push.apply(pair[1],values);
+  });
   var dv=[],lines=text.split(/\r?\n/),i,m;
   var rx1=/[挠度]{2}[^。\n]{0,25}?(?:[≤<≤]|不超过|不大于|不得超过|控制在)\s*[lL]\s*\/\s*(\d+)/;
   var rx2=/[lL]\s*\/\s*(\d+)\s*[^。\n]{0,12}[的]?\s*[挠度]{2}/;
   for(i=0;i<lines.length;i++){
     m=lines[i].match(rx1)||lines[i].match(rx2);
     if(m) dv.push({value:parseFloat(m[1]),unit:"L/x",line:i+1,snippet:lines[i].trim().slice(0,80),unit_ok:true});
+    var fraction=lines[i].match(/(?:挠度|变形)[^。\n]{0,20}?跨度的?([零〇一二两三四五六七八九十百千万\d]+)分之一/);
+    if(fraction)dv.push({value:/^\d+$/.test(fraction[1])?Number(fraction[1]):chineseNumber(fraction[1]),unit:"L/x",line:i+1,snippet:lines[i].trim().slice(0,80),unit_ok:true});
   }
   var sec=[];
   for(i=0;i<lines.length;i++){
@@ -301,30 +366,60 @@ function parseTaskbook(text){
   for(i=0;i<lines.length;i++){
     m=lines[i].match(/(Q235|Q345|Q355|Q420|16Mn|铝合金|木材|松木|杉木|不锈钢|45钢|A3钢)/);
     if(m) mat.push({material:m[1],line:i+1,snippet:lines[i].trim().slice(0,80)});
+    else if(/钢(?:的|材|梁)|普通钢|材料.{0,4}钢/.test(lines[i]))mat.push({material:"钢材（牌号待确认）",line:i+1,snippet:lines[i].trim().slice(0,80)});
   }
   function dedup(key,items){
     if(!items.length){ out.missing.push(key); return; }
+    var recognized=items.filter(function(it){return it.unit_ok!==false;});
+    if(recognized.length)items=recognized;
     var v0=items[0].value;
     for(var k=1;k<items.length;k++)
       if(Math.abs(items[k].value-v0)>1e-9*Math.max(1,Math.abs(v0))){ out.conflicts.push({key:key,items:items}); break; }
     out.found[key]=items[0];
   }
   dedup("L_m",L);
+  if(L.length&&spoken.right.length)spoken.right.forEach(function(it){a.push(Object.assign({},it,{value:L[0].value-it.value,derived_from:"由距右支座距离与跨度换算"}));});
+  var centerLine=lines.findIndex(function(line){return /(?:集中(?:力|荷载|载荷)|设备|位置|作用点)[^。；;\n]{0,25}(?:正中间|跨中|中点)|(?:正中间|跨中|中间).{0,6}(?:放|压|有)|(?:放|压|位于|在).{0,3}(?:正中间|跨中|中点)/.test(line);});
+  if(out.found.L_m&&out.found.L_m.unit_ok!==false&&P.some(function(it){return it.value>0;})&&centerLine>=0){
+    a.push({value:out.found.L_m.value/2,unit:"m",unit_ok:true,line:centerLine+1,snippet:originalLines[centerLine].trim().slice(0,80),derived_from:"由明确的跨中位置与跨度换算"});
+  }
   dedup("q_kN_m",q.map(function(it){return {value:it.value/1000,unit:"kN/m",line:it.line,snippet:it.snippet,unit_ok:it.unit_ok};}));
   dedup("P_kN",P.map(function(it){return {value:it.value/1000,unit:"kN",line:it.line,snippet:it.snippet,unit_ok:it.unit_ok};}));
   dedup("a_m",a);
   dedup("E_GPa",E);
   dedup("sigma_allow_MPa",sa);
   dedup("deflection_limit_divisor",dv);
+  if(spoken.b.length)dedup("b_mm",spoken.b);
+  if(spoken.h.length)dedup("h_mm",spoken.h);
+  if(spoken.d.length)dedup("d_mm",spoken.d);
+  if(spoken.b.length&&spoken.h.length)sec.push({b_mm:spoken.b[0].value,h_mm:spoken.h[0].value,line:spoken.b[0].line,snippet:spoken.b[0].snippet,unit_ok:true});
   if(sec.length){
     out.found.section=sec[0];
     if(sec.some(function(s){return s.b_mm!==sec[0].b_mm||s.h_mm!==sec[0].h_mm;})) out.conflicts.push({key:"section",items:sec});
-  } else out.missing.push("section");
+  } else if(spoken.d.length){out.found.section={shape:"circle",d_mm:spoken.d[0].value,line:spoken.d[0].line,snippet:spoken.d[0].snippet,unit_ok:true};}
+  else out.missing.push("section");
   if(mat.length) out.found.material_name=mat[0]; else out.missing.push("material_name");
   [[L,"L"],[q,"q"],[P,"P"],[a,"a"],[E,"E"],[sa,"σ"]].forEach(function(pair){
     pair[0].forEach(function(it){ if(!it.unit_ok) out.unrecognized_unit.push({key:pair[1],item:it}); });
   });
+  Object.values(out.found).forEach(function(it){if(it&&it.line)it.snippet=originalLines[it.line-1].trim().slice(0,80);});
+  out.conflicts.forEach(function(conflict){conflict.items.forEach(function(it){if(it.line)it.snippet=originalLines[it.line-1].trim().slice(0,80);});});
+  out.unrecognized_unit.forEach(function(u){if(u.item.line)u.item.snippet=originalLines[u.item.line-1].trim().slice(0,80);});
+  out.source_chars=originalText.length;
+  out.intake_questions=intakeQuestions(out);
   return out;
+}
+function intakeQuestions(parsed){
+  var f=parsed.found,questions=[];
+  if(parsed.unsupported.length)return questions;
+  function known(key){return f[key]&&f[key].unit_ok!==false;}
+  if(!known("L_m"))questions.push({key:"L_m",label:"这根梁有多长？（单位：米）",example:"比如：6米、六米长，或直接填米数",prefix:"跨度 "});
+  if(!known("q_kN_m"))questions.push({key:"q_kN_m",label:"梁上每米承受多少均匀分布的力？（kN/m）",example:"比如：每米10千牛；没有的话说“没有均布荷载”",prefix:"均布荷载 "});
+  if(!known("P_kN"))questions.push({key:"P_kN",label:"还有单独压在某个位置的力吗？（kN）",example:"比如：集中力20千牛；没有的话说“没有集中力”",prefix:"集中荷载 "});
+  if(known("P_kN")&&f.P_kN.value>0&&!known("a_m"))questions.push({key:"a_m",label:"这个集中力距左支座多远？（米）",example:"比如：离左边2米，或在正中间",prefix:"距左支座 "});
+  if(!known("section"))questions.push({key:"section",label:known("b_mm")?"截面有多高？":known("h_mm")?"截面有多宽？":"截面是什么形状、多大？",example:"比如：宽16厘米、高40厘米；或圆钢直径10厘米",prefix:known("b_mm")?"截面高 ":known("h_mm")?"截面宽 ":"矩形截面 "});
+  if(!known("E_GPa"))questions.push({key:"E_GPa",label:"知道材料的弹性模量吗？（GPa）",example:"比如：206GPa；不知道可先留空，稍后选教学预设",prefix:"弹性模量 "});
+  return questions;
 }
 function parsedToInput(parsed, overrides){
   var f=parsed.found, o=overrides||{};
@@ -343,7 +438,7 @@ function parsedToInput(parsed, overrides){
   else if(f.deflection_limit_divisor) inp.criteria.deflection_limit_divisor=f.deflection_limit_divisor.value;
   if(f.material_name) inp.material.name=f.material_name.material;
   if(o.section_b!==undefined||o.section_h!==undefined){ inp.section={shape:"rect",b_mm:o.section_b,h_mm:o.section_h}; }
-  else if(f.section&&f.section.unit_ok!==false) inp.section={shape:"rect",b_mm:f.section.b_mm,h_mm:f.section.h_mm};
+  else if(f.section&&f.section.unit_ok!==false) inp.section=f.section.shape==="circle"?{shape:"circle",d_mm:f.section.d_mm}:{shape:"rect",b_mm:f.section.b_mm,h_mm:f.section.h_mm};
   return inp;
 }
 

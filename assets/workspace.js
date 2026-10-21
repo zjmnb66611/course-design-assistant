@@ -110,7 +110,7 @@ function checkedProject(raw){
 function applyFields(fields){FORM_FIELDS.forEach(function(key){document.getElementById("in_"+key).value=fields[key];});shapeUI();}
 function restoreProject(raw){
   var clean=checkedProject(raw); // Complete validation before mutating the current workspace.
-  taskReadVersion++;
+  taskReadVersion++;state.intakeSkipped=[];
   document.getElementById("projectName").value=clean.name;
   document.getElementById("taskText").value=clean.task;
   document.getElementById("checkArea").value=clean.reportText;
@@ -217,12 +217,13 @@ function printReport(){
   document.getElementById("reportArea").appendChild(figures);showStep(5);window.print();
 }
 
-var ACTIONS={showStep:showStep,switchTaskTab:switchTaskTab,loadDemo:loadDemo,clearTask:clearTask,parseTask:parseTask,fillForm:fillForm,goCalc:goCalc,buildReport:buildReport,runCheck:runCheck,exportMD:exportMD,exportDOC:exportDOC,exportJSON:exportJSON,copyReport:copyReport,quickDemo:quickDemo,manualEntry:manualEntry,saveProject:saveProject,chooseProject:chooseProject,setTheme:setTheme,restoreDraft:restoreDraft,clearDraft:clearDraft,openCompare:openCompare,openKnowledge:openKnowledge,addScenario:addScenario,loadScenario:loadScenario,removeScenario:removeScenario,exportCSV:exportCSV,exportComparison:exportComparison,probePoint:probePoint,printReport:printReport};
+var ACTIONS={showStep:showStep,switchTaskTab:switchTaskTab,loadDemo:loadDemo,clearTask:clearTask,parseTask:parseTask,fillForm:fillForm,useIntakeStarter:useIntakeStarter,appendIntake:appendIntake,skipIntakeQuestion:skipIntakeQuestion,goCalc:goCalc,buildReport:buildReport,runCheck:runCheck,exportMD:exportMD,exportDOC:exportDOC,exportJSON:exportJSON,copyReport:copyReport,quickDemo:quickDemo,manualEntry:manualEntry,saveProject:saveProject,chooseProject:chooseProject,setTheme:setTheme,restoreDraft:restoreDraft,clearDraft:clearDraft,openCompare:openCompare,openKnowledge:openKnowledge,addScenario:addScenario,loadScenario:loadScenario,removeScenario:removeScenario,exportCSV:exportCSV,exportComparison:exportComparison,probePoint:probePoint,printReport:printReport};
 document.addEventListener("click",function(event){
   var button=event.target.closest("[data-action]");if(!button||button.disabled)return;
   var action=ACTIONS[button.dataset.action];if(!action)return;
   event.preventDefault();action(button.dataset.arg);
 });
+document.addEventListener("keydown",function(event){if(event.target.id==="followupText"&&event.key==="Enter"&&!event.isComposing){event.preventDefault();appendIntake();}});
 document.getElementById("accentSelect").addEventListener("change",function(event){
   if(!["blue","green","plum"].includes(event.target.value))return;
   appearance.accent=event.target.value;applyAppearance();writeStorage(PREF_KEY,JSON.stringify(appearance));
@@ -241,7 +242,7 @@ document.getElementById("projectFile").addEventListener("change",async function(
   }catch(error){notify("err","项目导入失败："+error.message);}
   finally{event.target.value="";}
 });
-document.getElementById("taskText").addEventListener("input",function(){taskReadVersion++;state.parsed=null;state.taskbook=null;state.overrides={};state.conflictResolved={};document.getElementById("parseResult").replaceChildren();clearMsg("parseMsg");invalidateResult(true);scheduleDraft();});
+document.getElementById("taskText").addEventListener("input",function(){taskReadVersion++;state.intakeSkipped=[];state.parsed=null;state.taskbook=null;state.overrides={};state.conflictResolved={};document.getElementById("parseResult").replaceChildren();clearMsg("parseMsg");invalidateResult(true);scheduleDraft();});
 document.getElementById("sec2").addEventListener("input",function(event){
   if(!event.target.matches("input,select"))return;
   invalidateResult(false);
