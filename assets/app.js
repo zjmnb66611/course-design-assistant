@@ -30,7 +30,7 @@ function showStep(n,keepScroll){
   document.getElementById("comparePanel").hidden=true;
   document.getElementById("knowledgePanel").hidden=true;
   updateWorkspace();
-  if(!keepScroll)window.scrollTo({top:0,behavior:matchMedia("(prefers-reduced-motion: reduce)").matches?"instant":"smooth"});
+  if(!keepScroll)window.scrollTo({top:0,behavior:matchMedia("(prefers-reduced-motion: reduce)").matches||document.documentElement.dataset.motion==="off"?"instant":"smooth"});
 }
 function msg(el,kind,html){ var e=document.getElementById(el); e.className="msg show "+kind; e.innerHTML=html; }
 function clearMsg(el){ var e=document.getElementById(el); e.className="msg"; e.innerHTML=""; }
@@ -145,7 +145,7 @@ function parseTask(){
   html.push('<div class="btn-row"><button class="btn btn-success" data-action="fillForm">查看已知参数，继续 →</button></div>');
   document.getElementById("parseResult").innerHTML=html.join("");
   clearMsg("parseMsg");updateWorkspace();scheduleDraft();
-  document.getElementById("parseResult").scrollIntoView({block:"start",behavior:matchMedia("(prefers-reduced-motion: reduce)").matches?"instant":"smooth"});
+  document.getElementById("parseResult").scrollIntoView({block:"start",behavior:matchMedia("(prefers-reduced-motion: reduce)").matches||document.documentElement.dataset.motion==="off"?"instant":"smooth"});
 }
 
 function intakeSummary(parsed){

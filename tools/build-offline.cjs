@@ -7,8 +7,8 @@ const destination=path.resolve(process.argv[2]||path.join(root,'dist','课设智
 let html=fs.readFileSync(path.join(root,'index.html'),'utf8');
 const scripts=[];
 html=html.replace(/<script src="(assets\/[^"]+?)(?:\?[^\"]+)?" defer><\/script>/g,(_,asset)=>{scripts.push(fs.readFileSync(path.join(root,asset),'utf8').replace(/\r\n?/g,'\n').replace(/<\/script/gi,'<\\/script'));return '';});
-if(scripts.length!==3)throw Error('Expected exactly three local application scripts');
-html=html.replace(/<link rel="stylesheet" href="assets\/styles.css[^\"]*">/,()=>'<style>'+fs.readFileSync(path.join(root,'assets/styles.css'),'utf8')+'</style>');
+if(scripts.length!==4)throw Error('Expected exactly four local application scripts');
+html=html.replace(/<link rel="stylesheet" href="(assets\/[^\"]+?)(?:\?[^\"]+)?">/g,(_,asset)=>'<style>'+fs.readFileSync(path.join(root,asset),'utf8')+'</style>');
 const hashes=scripts.map(code=>"'sha256-"+crypto.createHash('sha256').update(code).digest('base64')+"'");
 html=html.replace("script-src 'self'","script-src "+hashes.join(' '));
 html=html.replace('</body>',()=>scripts.map(code=>'<script>'+code+'</script>').join('\n')+'\n</body>');
