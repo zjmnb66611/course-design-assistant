@@ -102,7 +102,7 @@ test('offline build preserves formula dollar signs and supplies exact script has
   try{
     cp.execFileSync(process.execPath,[path.join(__dirname,'../tools/build-offline.cjs'),file]);
     const html=fs.readFileSync(file,'utf8'),scripts=[...html.matchAll(/<script>([\s\S]*?)<\/script>/g)].map(m=>m[1]);
-    assert.equal(scripts.length,4);assert.ok(html.includes('$$R_A ='));
+    assert.equal(scripts.length,5);assert.ok(html.includes('$$R_A ='));
     scripts.forEach(script=>assert.ok(html.includes("'sha256-"+crypto.createHash('sha256').update(script).digest('base64')+"'")));
     assert.ok(!html.includes("script-src 'unsafe-inline'"));
   }finally{if(fs.existsSync(file))fs.unlinkSync(file);fs.rmdirSync(directory);}

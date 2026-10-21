@@ -30,6 +30,10 @@ function showStep(n,keepScroll){
   document.getElementById("comparePanel").hidden=true;
   document.getElementById("knowledgePanel").hidden=true;
   updateWorkspace();
+  if(n===4&&state.out&&!document.getElementById("figGrid").hasAttribute("data-ready")){
+    renderFigs(state.out.params,state.out.results);document.getElementById("figGrid").setAttribute("data-ready","1");
+  }
+  if(!keepScroll&&window.CourseEffects)window.CourseEffects.enter(document.getElementById("sec"+n));
   if(!keepScroll)window.scrollTo({top:0,behavior:matchMedia("(prefers-reduced-motion: reduce)").matches||document.documentElement.dataset.motion==="off"?"instant":"smooth"});
 }
 function msg(el,kind,html){ var e=document.getElementById(el); e.className="msg show "+kind; e.innerHTML=html; }
@@ -392,8 +396,7 @@ function renderCalcSec(p,probs,res){
   if(probs.warnings.length) wh='<div class="msg warn show" style="margin-top:12px"><b>警告（需人工确认）：</b><br>'+probs.warnings.map(function(w){return "• "+esc(w);}).join("<br>")+'</div>';
   if(probs.notes.length) wh+='<div style="font-size:12.5px;color:var(--c-muted);margin-top:10px">说明：'+probs.notes.map(esc).join("；")+'</div>';
   document.getElementById("calcWarn").innerHTML=wh;
-  renderFigs(p,res);
-  document.getElementById("figGrid").setAttribute("data-ready","1");
+  document.getElementById("figGrid").removeAttribute("data-ready");
 }
 
 function renderFigs(p,res){

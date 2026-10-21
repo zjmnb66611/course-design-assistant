@@ -221,7 +221,11 @@ var ACTIONS={showStep:showStep,switchTaskTab:switchTaskTab,loadDemo:loadDemo,cle
 document.addEventListener("click",function(event){
   var button=event.target.closest("[data-action]");if(!button||button.disabled)return;
   var action=ACTIONS[button.dataset.action];if(!action)return;
-  event.preventDefault();action(button.dataset.arg);
+  event.preventDefault();
+  var loadingLabels={parseTask:"正在整理已知条件…",goCalc:"正在计算并核验结果…",buildReport:"正在生成计算书…"};
+  if(window.CourseLoading&&loadingLabels[button.dataset.action]){
+    CourseLoading.run(loadingLabels[button.dataset.action],button,function(){action(button.dataset.arg);});
+  }else action(button.dataset.arg);
 });
 document.addEventListener("keydown",function(event){if(event.target.id==="followupText"&&event.key==="Enter"&&!event.isComposing){event.preventDefault();appendIntake();}});
 document.getElementById("accentSelect").addEventListener("change",function(event){
@@ -265,3 +269,4 @@ try{var preferences=JSON.parse(readStorage(PREF_KEY)||"null");if(preferences&&["
 document.getElementById("restoreDraft").hidden=!readStorage(DRAFT_KEY);
 if(readStorage(DRAFT_KEY))document.getElementById("draftStatus").textContent="发现本机草稿，可手动恢复；本次自动保存尚未开启";
 applyAppearance();showStep(1);dirty=false;
+if(window.CourseLoading)CourseLoading.ready();

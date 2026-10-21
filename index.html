@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="zh-CN" data-ui-version="2.2.0">
+<html lang="zh-CN" data-ui-version="2.3.0">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
@@ -9,18 +9,22 @@
 <meta name="description" content="面向工科课程设计的校园工作台。本机解析任务书、简支梁可复算计算、方案对比与报告导出。">
 <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; connect-src 'none'; font-src 'self'; object-src 'none'; base-uri 'none'; form-action 'none'; worker-src 'none'">
 <title>课设智辅 · 工科课程设计与报告助手</title>
-<link rel="stylesheet" href="assets/styles.css?v=2.2.0">
-<link rel="stylesheet" href="assets/liquid.css?v=2.2.0">
-<script src="assets/engine.js?v=2.2.0" defer></script>
-<script src="assets/app.js?v=2.2.0" defer></script>
-<script src="assets/workspace.js?v=2.2.0" defer></script>
-<script src="assets/effects.js?v=2.2.0" defer></script>
+<link rel="stylesheet" href="assets/styles.css?v=2.3.0">
+<link rel="stylesheet" href="assets/liquid.css?v=2.3.0">
+<script src="assets/loading.js?v=2.3.0" defer></script>
+<script src="assets/engine.js?v=2.3.0" defer></script>
+<script src="assets/app.js?v=2.3.0" defer></script>
+<script src="assets/workspace.js?v=2.3.0" defer></script>
+<script src="assets/effects.js?v=2.3.0" defer></script>
 </head>
 <body>
+<div class="boot-loader" id="bootLoader" role="status" aria-live="polite"><div class="boot-content"><span class="boot-mark" aria-hidden="true">课</span><strong>课设智辅</strong><div class="loading-orbit" aria-hidden="true"></div><p id="bootLabel">正在准备你的学习工作台…</p><a class="load-retry" href="">刷新重试</a></div></div>
+<div class="task-loader" id="taskLoader" hidden role="status" aria-live="polite"><span class="loading-orbit" aria-hidden="true"></span><span id="taskLoadingLabel">正在处理…</span></div>
+<noscript><style>.boot-loader{display:none!important}</style><p class="notice-bar">请启用浏览器 JavaScript，以使用本机计算与报告功能。</p></noscript>
 <a class="skip-link" href="#mainContent">跳到主要内容</a>
 <div class="ambient-field" aria-hidden="true"><div class="ambient-orb orb-blue"></div><div class="ambient-orb orb-violet"></div><div class="ambient-orb orb-mint"></div></div>
 <canvas id="cursorTrail" aria-hidden="true"></canvas>
-<div class="app-shell">
+<div class="app-shell" inert>
 <aside class="sidebar" aria-label="工作台导航">
   <a class="brand" href="#" data-action="showStep" data-arg="1"><span class="brand-mark">课</span><span>课设智辅<small>CAMPUS WORKSPACE</small></span></a>
   <div class="sidebar-caption">我的课程设计</div>
@@ -204,7 +208,7 @@
 </section>
 
 <footer>
-  课设智辅 v2.2.0 · 液态玻璃学习工作台 · 口语输入，逐步补全<br>
+  课设智辅 v2.3.0 · 液态玻璃学习工作台 · 口语输入，逐步补全<br>
   “电信杯”校园智能体应用创新大赛参赛作品演示 · 保留来源、核对参数、复算结果，提交前请完成独立检查
 </footer>
 </div>
