@@ -1,0 +1,11 @@
+/* 只测试消息处理函数，不启动常驻进程或端口服务。 */
+const { test } = require('node:test'), assert = require('node:assert/strict');
+const { createHandler } = require('../agent-package/college-activity-planner/scripts/mcp-stdio.cjs');
+const project = require('../agent-package/college-activity-planner/examples/project.json');
+const request = (id, method, params = {}) => ({ jsonrpc: '2.0', id, method, params });
+function ready() { const handle = createHandler(); handle(request(1, 'initialize', { protocolVersion: '2025-11-25', capabilities: {}, clientInfo: { name: 'test', version: '1' } })); handle({ jsonrpc: '2.0', method: 'notifications/initialized' }); return handle; }
+test('MCP先协商版本再允许工具操作', () => { const h = createHandler(); assert.equal(h(request(1, 'tools/list')).error.code, -32000); assert.equal(h(request(2, 'initialize', { protocolVersion: 'unknown', capabilities: {}, clientInfo: { name: 'test' } })).result.protocolVersion, '2025-11-25'); assert.equal(h(request(3, 'tools/list')).error.code, -32000); assert.equal(h({ jsonrpc: '2.0', method: 'notifications/initialized' }), null); assert.equal(h(request(4, 'tools/list')).result.tools.length, 7); });
+test('MCP公布完整可解析的项目schema且工具只读', () => { const tools = ready()(request(1, 'tools/list')).result.tools; assert.ok(tools.every(t => t.annotations.readOnlyHint && !t.annotations.openWorldHint)); const tool = tools.find(t => t.name === 'analyze_budget'); assert.ok(tool.inputSchema.$defs.project.properties.basic); });
+test('MCP工具与网页共享核算口径', () => { const r = ready()(request(9, 'tools/call', { name: 'analyze_budget', arguments: { project } })); assert.equal(r.id, 9); assert.equal(r.result.isError, false); assert.equal(JSON.parse(r.result.content[0].text).totalCents, 264000); });
+test('MCP未知工具和坏数据分别返回协议及执行错误', () => { const h = ready(); assert.equal(h(request(1, 'tools/call', { name: 'run_shell', arguments: {} })).error.code, -32602); assert.equal(h(request(2, 'tools/call', { name: 'analyze_budget', arguments: { project: null } })).result.isError, true); });
+test('MCP无效消息、重复初始化和普通通知有界处理', () => { const h = ready(); assert.equal(h([]).error.code, -32600); assert.equal(h(request(1, 'initialize')).error.code, -32600); assert.equal(h({ jsonrpc: '2.0', method: 'notifications/cancelled' }), null); assert.equal(h(request(2, 'ping')).result.constructor, Object); });

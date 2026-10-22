@@ -1,0 +1,163 @@
+{
+  "format": "college-activity-assistant",
+  "version": 1,
+  "name": "迎新交流活动示例",
+  "raw": "策划一场学院迎新活动，120人，预算3000元。",
+  "basic": {
+    "title": "学院迎新交流活动",
+    "kind": "迎新团建",
+    "people": "120",
+    "budget": "3000",
+    "date": "2026-11-08",
+    "time": "14:00",
+    "duration": "120",
+    "venue": "学院多功能厅（示例待确认）",
+    "goal": "帮助新生认识校园资源并完成分组交流。",
+    "organizer": "学院学生会（示例）"
+  },
+  "reservePercent": "10",
+  "items": [
+    {
+      "id": "af1e70cae-b691-449a-a4e6-56e4c4ee5d3f",
+      "label": "场地与设备统筹",
+      "category": "场地设备",
+      "quantity": "1",
+      "unit": "批",
+      "unitPrice": "750.00",
+      "actual": "",
+      "quote": "estimate",
+      "source": "ACT-02：按预算上限比例分配的占位金额，需替换为询价结果",
+      "note": "标准版分配假设，不是市场报价"
+    },
+    {
+      "id": "a00553248-3765-48fc-940f-3c23c090c535",
+      "label": "宣传与印刷",
+      "category": "宣传印刷",
+      "quantity": "1",
+      "unit": "批",
+      "unitPrice": "300.00",
+      "actual": "",
+      "quote": "estimate",
+      "source": "ACT-02：按预算上限比例分配的占位金额，需替换为询价结果",
+      "note": "标准版分配假设，不是市场报价"
+    },
+    {
+      "id": "aa328a956-c1e8-4a43-9065-757da00fc085",
+      "label": "活动材料包",
+      "category": "活动物料",
+      "quantity": "1",
+      "unit": "批",
+      "unitPrice": "750.00",
+      "actual": "",
+      "quote": "estimate",
+      "source": "ACT-02：按预算上限比例分配的占位金额，需替换为询价结果",
+      "note": "标准版分配假设，不是市场报价"
+    },
+    {
+      "id": "a284ea392-bf5d-43b1-a5d8-78d4183d5e26",
+      "label": "现场保障物资",
+      "category": "人员保障",
+      "quantity": "1",
+      "unit": "批",
+      "unitPrice": "450.00",
+      "actual": "",
+      "quote": "estimate",
+      "source": "ACT-02：按预算上限比例分配的占位金额，需替换为询价结果",
+      "note": "标准版分配假设，不是市场报价"
+    },
+    {
+      "id": "ae42d7df2-001f-4681-ba42-f8930d443ce7",
+      "label": "其他必要支出",
+      "category": "其他",
+      "quantity": "1",
+      "unit": "批",
+      "unitPrice": "150.00",
+      "actual": "",
+      "quote": "estimate",
+      "source": "ACT-02：按预算上限比例分配的占位金额，需替换为询价结果",
+      "note": "标准版分配假设，不是市场报价"
+    }
+  ],
+  "funding": [
+    {
+      "id": "fund-demo",
+      "name": "拟申请学院经费",
+      "amount": "3000",
+      "status": "pending",
+      "source": "示例，未确认"
+    }
+  ],
+  "tasks": [
+    {
+      "id": "af7dba20f-a4b4-4d56-9e50-1477c995d744",
+      "title": "确认目标、人数与方案",
+      "offset": -14,
+      "owner": "统筹组",
+      "status": "todo",
+      "note": "相对活动日期的建议节点，可按实际修改"
+    },
+    {
+      "id": "a847d5deb-4154-4141-85b4-aab71730d764",
+      "title": "按本校流程确认场地与审批",
+      "offset": -10,
+      "owner": "统筹组",
+      "status": "todo",
+      "note": "相对活动日期的建议节点，可按实际修改"
+    },
+    {
+      "id": "ac82857f8-b99c-41c0-b03e-f09d85ae6f44",
+      "title": "询价、核对经费与采购清单",
+      "offset": -7,
+      "owner": "财务组",
+      "status": "todo",
+      "note": "相对活动日期的建议节点，可按实际修改"
+    },
+    {
+      "id": "a0152e8fe-f48e-47fc-8e94-6041fc3508af",
+      "title": "发布经审核的活动通知",
+      "offset": -5,
+      "owner": "宣传组",
+      "status": "todo",
+      "note": "相对活动日期的建议节点，可按实际修改"
+    },
+    {
+      "id": "a59af2433-1d00-4d63-914e-e4db1d025d7e",
+      "title": "确认人员分工与物资",
+      "offset": -2,
+      "owner": "执行组",
+      "status": "todo",
+      "note": "相对活动日期的建议节点，可按实际修改"
+    },
+    {
+      "id": "a7370f6cd-740d-4b7d-8cae-9b06f42db9ca",
+      "title": "检查现场和备选安排",
+      "offset": -1,
+      "owner": "后勤组",
+      "status": "todo",
+      "note": "相对活动日期的建议节点，可按实际修改"
+    },
+    {
+      "id": "ad67452a2-6f22-4d58-8d7b-7e03deb2923e",
+      "title": "执行活动、记录问题",
+      "offset": 0,
+      "owner": "执行组",
+      "status": "todo",
+      "note": "相对活动日期的建议节点，可按实际修改"
+    },
+    {
+      "id": "a85e0a848-c092-4e1d-926e-ad4739e42cf9",
+      "title": "核对票据、实际支出与反馈",
+      "offset": 2,
+      "owner": "财务组",
+      "status": "todo",
+      "note": "相对活动日期的建议节点，可按实际修改"
+    }
+  ],
+  "approvals": {
+    "venue": false,
+    "finance": false,
+    "safety": false,
+    "team": false
+  },
+  "scenarios": []
+}

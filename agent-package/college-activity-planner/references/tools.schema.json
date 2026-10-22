@@ -1,0 +1,667 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "学院活动助手本机工具请求（本项目契约，非官方配置）",
+  "$defs": {
+    "project": {
+      "type": "object",
+      "properties": {
+        "format": {
+          "const": "college-activity-assistant"
+        },
+        "version": {
+          "const": 1
+        },
+        "name": {
+          "type": "string",
+          "maxLength": 100
+        },
+        "raw": {
+          "type": "string",
+          "maxLength": 20000
+        },
+        "basic": {
+          "type": "object",
+          "properties": {
+            "title": {
+              "type": "string",
+              "maxLength": 120
+            },
+            "kind": {
+              "enum": [
+                "学术讲座",
+                "文体活动",
+                "志愿服务",
+                "培训交流",
+                "迎新团建"
+              ]
+            },
+            "people": {
+              "type": "string",
+              "pattern": "^(?:[1-9]\\d{0,4}|100000)?$"
+            },
+            "budget": {
+              "type": "string",
+              "pattern": "^(?:\\d+(?:\\.\\d{1,2})?)?$"
+            },
+            "date": {
+              "type": "string",
+              "pattern": "^(?:20\\d{2}-\\d{2}-\\d{2}|21\\d{2}-\\d{2}-\\d{2}|2200-\\d{2}-\\d{2})?$"
+            },
+            "time": {
+              "type": "string",
+              "pattern": "^(?:(?:[01]\\d|2[0-3]):[0-5]\\d)?$"
+            },
+            "duration": {
+              "type": "string",
+              "maxLength": 4
+            },
+            "venue": {
+              "type": "string",
+              "maxLength": 200
+            },
+            "goal": {
+              "type": "string",
+              "maxLength": 1500
+            },
+            "organizer": {
+              "type": "string",
+              "maxLength": 100
+            }
+          },
+          "required": [
+            "title",
+            "kind",
+            "people",
+            "budget",
+            "date",
+            "time",
+            "duration",
+            "venue",
+            "goal",
+            "organizer"
+          ],
+          "additionalProperties": false
+        },
+        "reservePercent": {
+          "type": "string",
+          "pattern": "^\\d+(?:\\.\\d{1,2})?$"
+        },
+        "items": {
+          "type": "array",
+          "maxItems": 200,
+          "items": {
+            "type": "object",
+            "properties": {
+              "id": {
+                "type": "string",
+                "pattern": "^[a-zA-Z0-9_-]{1,80}$"
+              },
+              "label": {
+                "type": "string",
+                "maxLength": 160
+              },
+              "category": {
+                "enum": [
+                  "场地设备",
+                  "宣传印刷",
+                  "活动物料",
+                  "人员保障",
+                  "其他"
+                ]
+              },
+              "quantity": {
+                "type": "string",
+                "pattern": "^\\d+(?:\\.\\d{1,3})?$"
+              },
+              "unit": {
+                "type": "string",
+                "maxLength": 20
+              },
+              "unitPrice": {
+                "type": "string",
+                "pattern": "^\\d+(?:\\.\\d{1,2})?$"
+              },
+              "actual": {
+                "type": "string",
+                "pattern": "^(?:\\d+(?:\\.\\d{1,2})?)?$"
+              },
+              "quote": {
+                "enum": [
+                  "estimate",
+                  "quoted"
+                ]
+              },
+              "source": {
+                "type": "string",
+                "maxLength": 500
+              },
+              "note": {
+                "type": "string",
+                "maxLength": 500
+              }
+            },
+            "required": [
+              "id",
+              "label",
+              "category",
+              "quantity",
+              "unit",
+              "unitPrice",
+              "actual",
+              "quote",
+              "source",
+              "note"
+            ],
+            "additionalProperties": false
+          }
+        },
+        "funding": {
+          "type": "array",
+          "maxItems": 20,
+          "items": {
+            "type": "object",
+            "properties": {
+              "id": {
+                "type": "string",
+                "pattern": "^[a-zA-Z0-9_-]{1,80}$"
+              },
+              "name": {
+                "type": "string",
+                "maxLength": 100
+              },
+              "amount": {
+                "type": "string",
+                "pattern": "^\\d+(?:\\.\\d{1,2})?$"
+              },
+              "status": {
+                "enum": [
+                  "pending",
+                  "confirmed"
+                ]
+              },
+              "source": {
+                "type": "string",
+                "maxLength": 500
+              }
+            },
+            "required": [
+              "id",
+              "name",
+              "amount",
+              "status",
+              "source"
+            ],
+            "additionalProperties": false
+          }
+        },
+        "tasks": {
+          "type": "array",
+          "maxItems": 100,
+          "items": {
+            "type": "object",
+            "properties": {
+              "id": {
+                "type": "string",
+                "pattern": "^[a-zA-Z0-9_-]{1,80}$"
+              },
+              "title": {
+                "type": "string",
+                "maxLength": 300
+              },
+              "owner": {
+                "type": "string",
+                "maxLength": 100
+              },
+              "offset": {
+                "type": "integer",
+                "minimum": -180,
+                "maximum": 180
+              },
+              "status": {
+                "enum": [
+                  "todo",
+                  "doing",
+                  "done"
+                ]
+              },
+              "note": {
+                "type": "string",
+                "maxLength": 1000
+              }
+            },
+            "required": [
+              "id",
+              "title",
+              "owner",
+              "offset",
+              "status",
+              "note"
+            ],
+            "additionalProperties": false
+          }
+        },
+        "approvals": {
+          "type": "object",
+          "properties": {
+            "venue": {
+              "type": "boolean"
+            },
+            "finance": {
+              "type": "boolean"
+            },
+            "safety": {
+              "type": "boolean"
+            },
+            "team": {
+              "type": "boolean"
+            }
+          },
+          "required": [
+            "venue",
+            "finance",
+            "safety",
+            "team"
+          ],
+          "additionalProperties": false
+        },
+        "scenarios": {
+          "type": "array",
+          "maxItems": 4,
+          "items": {
+            "type": "object",
+            "properties": {
+              "name": {
+                "type": "string",
+                "maxLength": 60
+              },
+              "raw": {
+                "type": "string",
+                "maxLength": 20000
+              },
+              "basic": {
+                "type": "object",
+                "properties": {
+                  "title": {
+                    "type": "string",
+                    "maxLength": 120
+                  },
+                  "kind": {
+                    "enum": [
+                      "学术讲座",
+                      "文体活动",
+                      "志愿服务",
+                      "培训交流",
+                      "迎新团建"
+                    ]
+                  },
+                  "people": {
+                    "type": "string",
+                    "pattern": "^(?:[1-9]\\d{0,4}|100000)?$"
+                  },
+                  "budget": {
+                    "type": "string",
+                    "pattern": "^(?:\\d+(?:\\.\\d{1,2})?)?$"
+                  },
+                  "date": {
+                    "type": "string",
+                    "pattern": "^(?:20\\d{2}-\\d{2}-\\d{2}|21\\d{2}-\\d{2}-\\d{2}|2200-\\d{2}-\\d{2})?$"
+                  },
+                  "time": {
+                    "type": "string",
+                    "pattern": "^(?:(?:[01]\\d|2[0-3]):[0-5]\\d)?$"
+                  },
+                  "duration": {
+                    "type": "string",
+                    "maxLength": 4
+                  },
+                  "venue": {
+                    "type": "string",
+                    "maxLength": 200
+                  },
+                  "goal": {
+                    "type": "string",
+                    "maxLength": 1500
+                  },
+                  "organizer": {
+                    "type": "string",
+                    "maxLength": 100
+                  }
+                },
+                "required": [
+                  "title",
+                  "kind",
+                  "people",
+                  "budget",
+                  "date",
+                  "time",
+                  "duration",
+                  "venue",
+                  "goal",
+                  "organizer"
+                ],
+                "additionalProperties": false
+              },
+              "items": {
+                "type": "array",
+                "maxItems": 200,
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "type": "string",
+                      "pattern": "^[a-zA-Z0-9_-]{1,80}$"
+                    },
+                    "label": {
+                      "type": "string",
+                      "maxLength": 160
+                    },
+                    "category": {
+                      "enum": [
+                        "场地设备",
+                        "宣传印刷",
+                        "活动物料",
+                        "人员保障",
+                        "其他"
+                      ]
+                    },
+                    "quantity": {
+                      "type": "string",
+                      "pattern": "^\\d+(?:\\.\\d{1,3})?$"
+                    },
+                    "unit": {
+                      "type": "string",
+                      "maxLength": 20
+                    },
+                    "unitPrice": {
+                      "type": "string",
+                      "pattern": "^\\d+(?:\\.\\d{1,2})?$"
+                    },
+                    "actual": {
+                      "type": "string",
+                      "pattern": "^(?:\\d+(?:\\.\\d{1,2})?)?$"
+                    },
+                    "quote": {
+                      "enum": [
+                        "estimate",
+                        "quoted"
+                      ]
+                    },
+                    "source": {
+                      "type": "string",
+                      "maxLength": 500
+                    },
+                    "note": {
+                      "type": "string",
+                      "maxLength": 500
+                    }
+                  },
+                  "required": [
+                    "id",
+                    "label",
+                    "category",
+                    "quantity",
+                    "unit",
+                    "unitPrice",
+                    "actual",
+                    "quote",
+                    "source",
+                    "note"
+                  ],
+                  "additionalProperties": false
+                }
+              },
+              "funding": {
+                "type": "array",
+                "maxItems": 20,
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "type": "string",
+                      "pattern": "^[a-zA-Z0-9_-]{1,80}$"
+                    },
+                    "name": {
+                      "type": "string",
+                      "maxLength": 100
+                    },
+                    "amount": {
+                      "type": "string",
+                      "pattern": "^\\d+(?:\\.\\d{1,2})?$"
+                    },
+                    "status": {
+                      "enum": [
+                        "pending",
+                        "confirmed"
+                      ]
+                    },
+                    "source": {
+                      "type": "string",
+                      "maxLength": 500
+                    }
+                  },
+                  "required": [
+                    "id",
+                    "name",
+                    "amount",
+                    "status",
+                    "source"
+                  ],
+                  "additionalProperties": false
+                }
+              },
+              "reservePercent": {
+                "type": "string",
+                "pattern": "^\\d+(?:\\.\\d{1,2})?$"
+              }
+            },
+            "required": [
+              "name",
+              "raw",
+              "basic",
+              "items",
+              "funding",
+              "reservePercent"
+            ],
+            "additionalProperties": false
+          }
+        }
+      },
+      "required": [
+        "format",
+        "version",
+        "name",
+        "raw",
+        "basic",
+        "reservePercent",
+        "items",
+        "funding",
+        "tasks",
+        "approvals",
+        "scenarios"
+      ],
+      "additionalProperties": false
+    }
+  },
+  "oneOf": [
+    {
+      "type": "object",
+      "properties": {
+        "tool": {
+          "const": "parse_brief"
+        },
+        "arguments": {
+          "type": "object",
+          "properties": {
+            "text": {
+              "type": "string",
+              "maxLength": 20000
+            }
+          },
+          "required": [
+            "text"
+          ],
+          "additionalProperties": false
+        }
+      },
+      "required": [
+        "tool",
+        "arguments"
+      ],
+      "additionalProperties": false
+    },
+    {
+      "type": "object",
+      "properties": {
+        "tool": {
+          "const": "draft_plan"
+        },
+        "arguments": {
+          "type": "object",
+          "properties": {
+            "project": {
+              "$ref": "#/$defs/project"
+            }
+          },
+          "required": [
+            "project"
+          ],
+          "additionalProperties": false
+        }
+      },
+      "required": [
+        "tool",
+        "arguments"
+      ],
+      "additionalProperties": false
+    },
+    {
+      "type": "object",
+      "properties": {
+        "tool": {
+          "const": "suggest_budget"
+        },
+        "arguments": {
+          "type": "object",
+          "properties": {
+            "project": {
+              "$ref": "#/$defs/project"
+            },
+            "lean": {
+              "type": "boolean"
+            }
+          },
+          "required": [
+            "project"
+          ],
+          "additionalProperties": false
+        }
+      },
+      "required": [
+        "tool",
+        "arguments"
+      ],
+      "additionalProperties": false
+    },
+    {
+      "type": "object",
+      "properties": {
+        "tool": {
+          "const": "analyze_budget"
+        },
+        "arguments": {
+          "type": "object",
+          "properties": {
+            "project": {
+              "$ref": "#/$defs/project"
+            }
+          },
+          "required": [
+            "project"
+          ],
+          "additionalProperties": false
+        }
+      },
+      "required": [
+        "tool",
+        "arguments"
+      ],
+      "additionalProperties": false
+    },
+    {
+      "type": "object",
+      "properties": {
+        "tool": {
+          "const": "review_activity"
+        },
+        "arguments": {
+          "type": "object",
+          "properties": {
+            "project": {
+              "$ref": "#/$defs/project"
+            }
+          },
+          "required": [
+            "project"
+          ],
+          "additionalProperties": false
+        }
+      },
+      "required": [
+        "tool",
+        "arguments"
+      ],
+      "additionalProperties": false
+    },
+    {
+      "type": "object",
+      "properties": {
+        "tool": {
+          "const": "knowledge_lookup"
+        },
+        "arguments": {
+          "type": "object",
+          "properties": {
+            "query": {
+              "type": "string",
+              "maxLength": 300
+            }
+          },
+          "required": [
+            "query"
+          ],
+          "additionalProperties": false
+        }
+      },
+      "required": [
+        "tool",
+        "arguments"
+      ],
+      "additionalProperties": false
+    },
+    {
+      "type": "object",
+      "properties": {
+        "tool": {
+          "const": "build_report"
+        },
+        "arguments": {
+          "type": "object",
+          "properties": {
+            "project": {
+              "$ref": "#/$defs/project"
+            }
+          },
+          "required": [
+            "project"
+          ],
+          "additionalProperties": false
+        }
+      },
+      "required": [
+        "tool",
+        "arguments"
+      ],
+      "additionalProperties": false
+    }
+  ]
+}
