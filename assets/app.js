@@ -18,6 +18,9 @@ var taskReadVersion=0;
 
 function unlock(n){ maxUnlocked=Math.max(maxUnlocked,n); showStep(n); }
 function showStep(n,keepScroll){
+  delete document.documentElement.dataset.tool;
+  document.getElementById("guidePanel").hidden=true;
+  if(typeof pauseGuideVideo==="function")pauseGuideVideo();
   n=Math.max(1,Math.min(Number(n)||1,maxUnlocked)); currentStep=n;
   document.documentElement.dataset.step=String(n);
   for(var i=1;i<=6;i++){
@@ -51,7 +54,7 @@ function loadDemo(){
   document.getElementById("parseResult").replaceChildren(); invalidateResult(true);
   switchTaskTab("paste");
   document.getElementById("taskText").value="某教学楼楼面简支梁课程设计任务书\n\n一、设计资料\n某教学楼楼面采用一根简支钢梁，计算跨度 L = 6 m。\n梁截面为矩形，尺寸 100 × 200 mm。\n材料为 Q235 钢，弹性模量 E = 206 GPa，许用应力 160 MPa。\n楼面构造及设备传来均布荷载 q = 10 kN/m（已含自重）。\n另有一台固定设备，集中荷载 P = 20 kN，作用位置距左端支座 2 m。\n\n二、设计要求\n1. 计算支座反力，绘制剪力图与弯矩图；\n2. 校核梁的正应力强度；\n3. 计算最大挠度，要求挠度不超过 L/250；\n4. 提交完整计算书，含公式推导与数据表格。";
-  msg("parseMsg","ok","已载入示例，点击“帮我整理，继续”即可。");
+  msg("parseMsg","ok","已载入示例，点击“开始整理”即可。");
 }
 function clearTask(){
   state.intakeSkipped=[];
@@ -89,7 +92,7 @@ document.getElementById("taskFile").addEventListener("change",function(ev){
     state.overrides={};state.conflictResolved={};document.getElementById("parseResult").replaceChildren();
     document.getElementById("taskText").value=text;scheduleDraft();
     meta.innerHTML='已读取 <b>'+esc(f.name)+'</b>（'+f.size+' 字节），不会上传；如开启本机草稿，将保存于此浏览器。';
-    msg("parseMsg","ok","文件已读入，点击“帮我整理，继续”即可。");
+    msg("parseMsg","ok","文件已读入，点击“开始整理”即可。");
   };
   rd.onerror=function(){ meta.innerHTML='<span style="color:var(--c-danger)">读取失败，请重试或改用粘贴。</span>'; };
   rd.readAsText(f,"utf-8");
@@ -146,7 +149,7 @@ function parseTask(){
       state.conflictResolved[c.key]={idx:ci,items:c.items,keyName:c.key};
     });
   }
-  html.push('<div class="btn-row"><button class="btn btn-success" data-action="fillForm">查看已知参数，继续 →</button></div>');
+  html.push('<div class="btn-row"><button class="btn btn-success" data-action="fillForm">确认参数</button></div>');
   document.getElementById("parseResult").innerHTML=html.join("");
   clearMsg("parseMsg");updateWorkspace();scheduleDraft();
   document.getElementById("parseResult").scrollIntoView({block:"start",behavior:matchMedia("(prefers-reduced-motion: reduce)").matches||document.documentElement.dataset.motion==="off"?"instant":"smooth"});
@@ -159,19 +162,19 @@ function intakeSummary(parsed){
   Object.keys(labels).forEach(function(key){if(f[key]&&f[key].unit_ok!==false)known.push(labels[key][0]+" "+fnum(f[key].value)+" "+labels[key][1]);});
   if(f.section&&f.section.unit_ok!==false&&!f.b_mm&&!f.d_mm)known.push(f.section.shape==="circle"?"圆截面，直径 "+fnum(f.section.d_mm)+" mm":"矩形截面 "+fnum(f.section.b_mm)+" × "+fnum(f.section.h_mm)+" mm");
   if(f.material_name)known.push(f.material_name.material);
-  var html='<div class="intake-answer"><div class="intake-answer-title">'+(known.length?"先记下这些，我们接着来。":"可以，先从你知道的一点开始。")+'</div>';
-  html+=known.length?'<div class="known-facts">'+known.map(function(t){return '<span>'+esc(t)+'</span>';}).join("")+'</div>':'<p>不用一次写全，也不用先查齐资料。你的描述已经保留。</p>';
+  var html='<div class="intake-answer"><div class="intake-answer-title">'+(known.length?"已整理的条件":"先补充一个条件")+'</div>';
+  html+=known.length?'<div class="known-facts">'+known.map(function(t){return '<span>'+esc(t)+'</span>';}).join("")+'</div>':'<p>你的描述已保留，不用一次写全。</p>';
   if(parsed.unsupported.length)html+='<p class="intake-scope">'+esc(parsed.unsupported.join("；"))+'。可以先整理原文，当前计算模块仍为简支梁。</p>';
   if(question){
-    html+='<label class="followup-question" for="followupText">'+esc(question.label)+'</label><p>'+esc(question.example)+'</p><div class="followup-row"><input type="text" id="followupText" maxlength="2000" autocomplete="off" placeholder="再说一句就行，不知道也可以先跳过"><button class="btn btn-primary" data-action="appendIntake">补充这句话</button></div><button class="text-btn" data-action="skipIntakeQuestion">这项先留空，问我下一项</button><small>可以继续口语补充，也可先到参数页看看；数据齐了再正式计算。</small>';
-  }else if(!parsed.unsupported.length)html+='<p>'+(parsed.intake_questions.length?'已知信息已保留，暂时不清楚的仍然留空，可以到参数页继续完善。':'主要计算条件已经有了。点下面的按钮核对参数，就可以继续计算。')+'</p>';
+    html+='<label class="followup-question" for="followupText">'+esc(question.label)+'</label><p>'+esc(question.example)+'</p><div class="followup-row"><input type="text" id="followupText" maxlength="2000" autocomplete="off" placeholder="再补充一句…"><button class="btn btn-primary" data-action="appendIntake">补充</button></div><button class="text-btn" data-action="skipIntakeQuestion">暂时跳过</button>';
+  }else if(!parsed.unsupported.length)html+='<p>'+(parsed.intake_questions.length?'未知项已留空，可到参数页补齐。':'主要条件已齐，下一步核对参数。')+'</p>';
   return html+'</div>';
 }
 function useIntakeStarter(kind){
   var starters={idea:"我想做梁的课设，还不知道要准备什么。",partial:"我只知道梁长六米，其他数据还没确定。",spoken:"帮我算一根六米长的简支梁，钢的，上面每米压十千牛。"};
   if(!Object.hasOwn(starters,kind))return;
   var textarea=document.getElementById("taskText");
-  if(textarea.value.trim()){msg("parseMsg","warn","已有内容已保留。你可以直接点击“帮我整理，继续”，不用替换成示例。");textarea.focus();return;}
+  if(textarea.value.trim()){msg("parseMsg","warn","已有内容已保留。你可以直接点击“开始整理”，不用替换成示例。");textarea.focus();return;}
   switchTaskTab("paste");textarea.value=starters[kind];parseTask();
 }
 function appendIntake(){

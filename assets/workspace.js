@@ -12,6 +12,7 @@ var draftPending=false;
 var draftHealthy=false;
 var appearance={theme:"system",accent:"blue"};
 var themeMedia=matchMedia("(prefers-color-scheme: dark)");
+var guideReturnPanel="sec1",guideReturnScroll=0,guideOpener=null;
 
 function notify(kind,text){msg("globalMsg",kind,esc(text));}
 function readStorage(key){try{return localStorage.getItem(key);}catch(error){return null;}}
@@ -35,10 +36,10 @@ themeMedia.addEventListener("change",applyAppearance);
 function updateWorkspace(){
   document.getElementById("progressLabel").innerHTML=String(currentStep).padStart(2,"0")+' <small>/ 06</small>';
   document.getElementById("progressFill").style.width=(currentStep/6*100)+"%";
-  document.getElementById("progressHint").textContent=STEPS[currentStep-1]+" · 按步骤完成并独立复核";
+  document.getElementById("progressHint").textContent=STEPS[currentStep-1];
   document.getElementById("workspaceStatus").textContent=state.out?"计算已更新":state.parsed?"等待核对参数":"准备开始";
   document.getElementById("scenarioCount").textContent=scenarios.length+" / 4";
-  document.getElementById("charCount").textContent=document.getElementById("taskText").value.length.toLocaleString("en-US")+" / 200,000 字符";
+  document.getElementById("charCount").textContent=document.getElementById("taskText").value.length.toLocaleString("en-US")+" 字";
 }
 function invalidateResult(taskChanged){
   state.out=null;state.reportMD=null;state.input=null;
@@ -128,7 +129,7 @@ function scheduleDraft(){
   draftPending=true;
   draftTimer=setTimeout(function(){
     draftHealthy=writeStorage(DRAFT_KEY,JSON.stringify(snapshotProject()));draftPending=false;
-    if(draftHealthy){document.getElementById("draftStatus").textContent="已保存到本机草稿 · 仅此浏览器可恢复";}
+    if(draftHealthy){document.getElementById("draftStatus").textContent="已保存到本机草稿";}
     else{document.getElementById("draftStatus").textContent="草稿保存失败，请下载项目备份";}
   },650);
 }
@@ -143,6 +144,9 @@ function clearDraft(){
   notify(removed?"ok":"warn",removed?"本机草稿已清除，自动保存已关闭。当前页面数据仍可继续使用。":"浏览器拒绝访问本机存储，请手动检查本站数据。");
 }
 function showTool(id){
+  document.documentElement.dataset.tool=id;
+  document.getElementById("guidePanel").hidden=id!=="guidePanel";
+  if(id!=="guidePanel")pauseGuideVideo();
   for(var i=1;i<=6;i++){document.getElementById("sec"+i).style.display="none";document.getElementById("tab"+i).classList.remove("active");document.getElementById("tab"+i).removeAttribute("aria-current");}
   document.getElementById("comparePanel").hidden=id!=="comparePanel";
   document.getElementById("knowledgePanel").hidden=id!=="knowledgePanel";
@@ -150,6 +154,41 @@ function showTool(id){
 }
 function openCompare(){renderScenarios();showTool("comparePanel");}
 function openKnowledge(){showTool("knowledgePanel");}
+function pauseGuideVideo(){document.getElementById("guideVideo").pause();}
+function prepareGuideVideo(loadSource){
+  var video=document.getElementById("guideVideo");
+  if(loadSource&&!video.getAttribute("src"))video.src=video.dataset.videoSrc;
+  if(!video.getAttribute("poster"))video.poster=video.dataset.posterSrc;
+  document.getElementById("videoDownload").href=video.dataset.videoSrc;
+  var link=document.getElementById("videoDownload");
+  var localSource=location.protocol==="file:"&&!video.dataset.videoSrc.startsWith("data:");
+  link.textContent=localSource?"在新页打开视频":"下载视频";
+  link.target=localSource?"_blank":"_self";link.rel="noopener";
+  return video;
+}
+function openGuide(){
+  if(!document.getElementById("guidePanel").hidden)return;
+  var panel=Array.from(document.querySelectorAll("main section.card")).find(function(el){return !el.hidden&&el.style.display!=="none";});
+  guideReturnPanel=panel?panel.id:"sec"+currentStep;guideReturnScroll=scrollY;guideOpener=document.activeElement;
+  showTool("guidePanel");prepareGuideVideo();document.getElementById("guideHeading").focus({preventScroll:true});
+}
+function closeGuide(){
+  pauseGuideVideo();
+  if(["comparePanel","knowledgePanel"].includes(guideReturnPanel))showTool(guideReturnPanel);
+  else showStep(currentStep,true);
+  window.scrollTo({top:guideReturnScroll,behavior:"instant"});
+  if(guideOpener&&guideOpener.isConnected)guideOpener.focus({preventScroll:true});
+}
+function playGuide(value){
+  var video=prepareGuideVideo(true),seconds=Number(value)||0;
+  document.getElementById("guideVideoError").hidden=true;
+  if(video.readyState>=1)video.currentTime=seconds;
+  else video.addEventListener("loadedmetadata",function(){video.currentTime=seconds;},{once:true});
+  video.play().then(function(){document.getElementById("videoStart").hidden=true;}).catch(function(error){
+    if(error&&error.name==="AbortError"||document.getElementById("guidePanel").hidden)return;
+    document.getElementById("guideVideoError").hidden=false;
+  });
+}
 function addScenario(){
   if(!ensureResult())return;
   if(scenarios.length>=4){notify("warn","最多保存 4 个方案，请先移除不需要的方案。");return;}
@@ -162,7 +201,7 @@ function renderScenarios(){
   var rows=scenarios.map(function(s,index){var r=s.result;
     return '<tr><th scope="row"><label class="sr-only" for="scenarioName'+index+'">方案名称</label><input type="text" class="scenario-name" id="scenarioName'+index+'" data-scenario-name="'+index+'" maxlength="60" value="'+esc(s.name)+'"></th><td>'+esc(s.fields.shape==="rect"?s.fields.b+" × "+s.fields.h+" mm":s.fields.shape==="circle"?"直径 "+s.fields.d+" mm":"自定义 I / W")+'</td><td>'+(r?fnum(r.internal.Mmax_kN_m,3):'待重算')+'</td><td>'+(r?fnum(r.stress.sigma_max_MPa,3):'—')+'</td><td>'+(r?fnum(r.deflection.delta_max_mm,3):'—')+'</td><td>'+(r?'<span class="tag '+(r.stress.pass===true&&r.deflection.pass?'ok':'warn')+'">'+(r.stress.pass===null?'强度未判定':r.stress.pass&&r.deflection.pass?'强度 / 刚度满足':'存在不满足')+'</span>':'<span class="tag warn">恢复后待重算</span>')+'</td><td><button class="text-btn" data-action="loadScenario" data-arg="'+index+'">载入参数</button><button class="text-btn danger-text" data-action="removeScenario" data-arg="'+index+'">移除</button></td></tr>';
   }).join("");
-  box.innerHTML='<div class="tb-wrap"><table class="tb compare-table"><caption>方案对比 · 同一模型下的数值比较，非完整设计验收</caption><thead><tr><th>方案名称</th><th>截面</th><th>Mmax / kN·m</th><th>σmax / MPa</th><th>δmax / mm</th><th>教学校核</th><th>操作</th></tr></thead><tbody>'+rows+'</tbody></table></div><p class="hint">载入参数后请点击“开始计算”。重新保存方案会增加一项，原方案保留供比较。</p>';
+  box.innerHTML='<div class="tb-wrap"><table class="tb compare-table"><caption>方案对比 · 同一模型下的数值比较，非完整设计验收</caption><thead><tr><th>方案名称</th><th>截面</th><th>Mmax / kN·m</th><th>σmax / MPa</th><th>δmax / mm</th><th>教学校核</th><th>操作</th></tr></thead><tbody>'+rows+'</tbody></table></div><p class="hint">载入参数后需重新计算。</p>';
 }
 function refreshScenarioResults(){
   if(!state.out||!state.out.results.checks.all_pass)return;
@@ -217,7 +256,7 @@ function printReport(){
   document.getElementById("reportArea").appendChild(figures);showStep(5);window.print();
 }
 
-var ACTIONS={showStep:showStep,switchTaskTab:switchTaskTab,loadDemo:loadDemo,clearTask:clearTask,parseTask:parseTask,fillForm:fillForm,useIntakeStarter:useIntakeStarter,appendIntake:appendIntake,skipIntakeQuestion:skipIntakeQuestion,goCalc:goCalc,buildReport:buildReport,runCheck:runCheck,exportMD:exportMD,exportDOC:exportDOC,exportJSON:exportJSON,copyReport:copyReport,quickDemo:quickDemo,manualEntry:manualEntry,saveProject:saveProject,chooseProject:chooseProject,setTheme:setTheme,restoreDraft:restoreDraft,clearDraft:clearDraft,openCompare:openCompare,openKnowledge:openKnowledge,addScenario:addScenario,loadScenario:loadScenario,removeScenario:removeScenario,exportCSV:exportCSV,exportComparison:exportComparison,probePoint:probePoint,printReport:printReport};
+var ACTIONS={openGuide:openGuide,closeGuide:closeGuide,playGuide:playGuide,showStep:showStep,switchTaskTab:switchTaskTab,loadDemo:loadDemo,clearTask:clearTask,parseTask:parseTask,fillForm:fillForm,useIntakeStarter:useIntakeStarter,appendIntake:appendIntake,skipIntakeQuestion:skipIntakeQuestion,goCalc:goCalc,buildReport:buildReport,runCheck:runCheck,exportMD:exportMD,exportDOC:exportDOC,exportJSON:exportJSON,copyReport:copyReport,quickDemo:quickDemo,manualEntry:manualEntry,saveProject:saveProject,chooseProject:chooseProject,setTheme:setTheme,restoreDraft:restoreDraft,clearDraft:clearDraft,openCompare:openCompare,openKnowledge:openKnowledge,addScenario:addScenario,loadScenario:loadScenario,removeScenario:removeScenario,exportCSV:exportCSV,exportComparison:exportComparison,probePoint:probePoint,printReport:printReport};
 document.addEventListener("click",function(event){
   var button=event.target.closest("[data-action]");if(!button||button.disabled)return;
   var action=ACTIONS[button.dataset.action];if(!action)return;
@@ -234,7 +273,7 @@ document.getElementById("accentSelect").addEventListener("change",function(event
 });
 document.getElementById("autoDraft").addEventListener("change",function(event){
   draftEnabled=event.target.checked;
-  if(draftEnabled){document.getElementById("draftStatus").textContent="已开启 · 任务与参数将保存到此浏览器";scheduleDraft();}
+  if(draftEnabled){document.getElementById("draftStatus").textContent="已开启，保存在当前浏览器。";scheduleDraft();}
   else clearDraft();
 });
 document.getElementById("projectFile").addEventListener("change",async function(event){
@@ -251,7 +290,7 @@ document.getElementById("sec2").addEventListener("input",function(event){
   if(!event.target.matches("input,select"))return;
   invalidateResult(false);
   var field=event.target.id.replace("in_","");var label=document.getElementById("src_"+field);
-  if(label){label.textContent="已人工确认或修改 · 以当前表单为准";label.className="src mod";}
+  if(label){label.textContent="已手动修改";label.className="src mod";}
   scheduleDraft();
 });
 document.getElementById("sec2").addEventListener("change",function(event){
@@ -267,6 +306,12 @@ window.addEventListener("beforeunload",function(event){if(dirty&&(!draftEnabled|
 
 try{var preferences=JSON.parse(readStorage(PREF_KEY)||"null");if(preferences&&["light","dark","system"].includes(preferences.theme)&&["blue","green","plum"].includes(preferences.accent))appearance={theme:preferences.theme,accent:preferences.accent};}catch(error){/* Malformed preferences fall back to system. */}
 document.getElementById("restoreDraft").hidden=!readStorage(DRAFT_KEY);
-if(readStorage(DRAFT_KEY))document.getElementById("draftStatus").textContent="发现本机草稿，可手动恢复；本次自动保存尚未开启";
+if(readStorage(DRAFT_KEY)){
+  document.getElementById("draftStatus").textContent="发现草稿，可恢复。";
+  document.querySelector(".workspace-options").open=true;
+}
 applyAppearance();showStep(1);dirty=false;
 if(window.CourseLoading)CourseLoading.ready();
+if(new URL(location.href).searchParams.get("view")==="guide"){
+  requestAnimationFrame(function(){requestAnimationFrame(openGuide);});
+}

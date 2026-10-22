@@ -135,3 +135,48 @@ input:focus,select:focus,textarea:focus{outline:2px solid var(--c-primary-2);out
 :root[data-motion=off] .loading-orbit{animation:none!important;border-style:dotted}
 @media(forced-colors:active){.boot-loader,.task-loader{background:Canvas;color:CanvasText}.loading-orbit{border-color:CanvasText;border-top-color:Highlight}}
 @media print{.boot-loader,.task-loader{display:none!important}}
+/* Concise workspace; detailed guidance lives in the help panel. */
+header.hero{min-height:150px;padding:18px 12px 22px;gap:16px}
+.hero h1,.hero h1>span{font-size:clamp(26px,2.4vw,34px);line-height:1.35;letter-spacing:-.8px}
+.hero .sub{font-size:12px;margin-top:9px}.hero .eyebrow{margin-bottom:8px;font-size:10px}
+.hero-progress{min-width:155px;width:200px;padding-left:20px}.hero-progress b{font-size:33px}
+.hero-progress .glass-sculpture{width:125px;height:125px;right:-8px;top:-25px;opacity:.55}
+.hero-progress .sculpture-ring{border-width:11px}.hero-progress .ring-two{inset:20px;border-width:8px}.hero-progress .sculpture-core{inset:39px;font-size:31px}
+.intake-shortcuts{display:flex;gap:12px;flex-wrap:wrap;margin:12px 0 0}.intake-shortcuts .text-btn{font-size:11px;padding:4px 0;min-height:30px}
+.intake-shortcuts .text-btn:last-child{margin-left:auto}
+#sec1 .hint{margin-bottom:14px}#sec1 .tabs{margin-top:14px}
+textarea#taskText{height:128px;min-height:128px;line-height:1.9}
+.input-helper{margin-top:10px}.card>.fold{margin-top:16px}.fold>#calcEcho{margin-top:14px}
+.help-button{border:1px solid var(--c-border);background:var(--glass);padding:7px 12px;min-height:34px;border-radius:99px;white-space:nowrap;font-size:11px;color:var(--c-primary);cursor:pointer}
+:root:not([data-step="1"]) header.hero{display:none}
+:root[data-tool=guidePanel] .hero,:root[data-tool=guidePanel] .project-bar,:root[data-tool=guidePanel] .draft-bar,:root[data-tool=guidePanel] .notice-bar{display:none}
+:root[data-tool=guidePanel] .wrap{padding-top:24px}
+.guide-panel .section-head{margin-bottom:20px}.guide-panel .section-head .hint{margin:4px 0 0}
+.guide-layout{display:grid;grid-template-columns:minmax(0,1.8fr) minmax(220px,1fr);gap:24px;align-items:start}
+.guide-video-area{min-width:0}.guide-video-area video{width:100%;aspect-ratio:16/10;display:block;border-radius:18px;background:var(--c-soft);border:1px solid var(--c-border)}
+.guide-video-area>p{font-size:11px;color:var(--c-muted);line-height:1.8;margin-top:9px}
+.guide-video-area .btn-row{margin-top:12px;align-items:center;gap:14px}
+.guide-steps{list-style:none;display:grid;gap:10px;margin:0;padding:0}
+.guide-steps li{padding:13px 14px;border-radius:16px;background:var(--c-soft)}
+.guide-steps button{display:flex;align-items:center;gap:9px;width:100%;text-align:left;cursor:pointer;background:transparent;border:0;color:var(--c-primary);font-size:13px;min-height:30px;border-radius:8px}
+.guide-steps button span{display:grid;place-items:center;width:24px;height:24px;border-radius:8px;background:var(--c-card);font-size:11px;font-weight:600}
+.guide-steps p{font-size:11px;color:var(--c-muted);line-height:1.8;margin:7px 0 0}
+.guide-panel>.fold{margin-top:13px}.guide-panel>.fold p{font-size:12px;line-height:1.9;margin-top:12px;color:var(--c-muted)}
+#guideVideoError{color:var(--c-warn)}
+footer .text-btn{font-size:10px;margin-left:8px;min-height:30px}
+@media(max-width:1000px){.guide-layout{grid-template-columns:1fr}.guide-steps{grid-template-columns:repeat(2,minmax(0,1fr))}.topbar-controls{gap:9px}.topbar-status{display:none}}
+@media(max-width:780px){header.hero{min-height:112px;padding:14px 6px 18px}.hero-progress{display:none}.hero h1,.hero h1>span{font-size:27px}.hero .sub{font-size:11px}.hero .eyebrow{font-size:9px}.topbar{padding:6px 10px}.help-button{padding:6px 9px;font-size:10px}.topbar-controls{gap:6px}.topbar .breadcrumb{font-size:9px}.topbar .breadcrumb span{padding:0 5px}.guide-layout{gap:16px}:root[data-tool=guidePanel] .wrap{padding-top:14px}}
+@media(max-width:440px){.topbar .breadcrumb{font-size:8px}.topbar .breadcrumb>span{padding:0 3px}.topbar .motion-toggle{font-size:8px;gap:3px}.help-button{font-size:9px;padding:6px 8px}.hero h1,.hero h1>span{font-size:25px}.guide-steps{grid-template-columns:1fr}.guide-video-area video{border-radius:12px}.guide-panel .section-head{gap:10px}.intake-shortcuts{gap:12px}.intake-shortcuts .text-btn{font-size:10px}.draft-bar #draftStatus{flex-basis:auto}.guide-video-area .btn-row .btn{width:auto}.guide-panel>.fold p{font-size:11px}.guide-steps li{padding:12px}.topbar-controls{gap:4px}}
+@media(max-width:350px){.topbar .breadcrumb{font-size:7px}.help-button{font-size:8px;padding:5px 6px}.topbar .motion-toggle{font-size:7px}.hero h1,.hero h1>span{font-size:22px}}
+@media print{#guidePanel,.help-button{display:none!important}}
+.workspace-options{margin:0 0 14px;border:1px solid var(--glass-edge);border-radius:16px;background:var(--glass)}
+.workspace-options>summary{padding:10px 15px;font-size:11px;color:var(--c-primary);cursor:pointer;min-height:38px}
+.workspace-options[open]>summary{border-bottom:1px solid var(--c-border)}
+.workspace-options .project-bar{border:0;border-radius:0 0 16px 16px;background:transparent;box-shadow:none;backdrop-filter:none;-webkit-backdrop-filter:none}
+.workspace-options .draft-bar{padding:8px 16px 12px;margin:0}
+:root[data-tool=guidePanel] .workspace-options{display:none}
+@media print{.workspace-options{display:none!important}}
+.guide-player{position:relative}
+.video-start{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);display:grid;place-items:center;width:64px;height:64px;border-radius:50%;border:1px solid #ffffffaa;background:#314c85cc;color:#fff;box-shadow:0 5px 24px #15223e40;cursor:pointer;font-size:24px;padding-left:4px}
+.video-start:hover{background:#5269cc}.video-start[hidden]{display:none!important}
+@media(max-width:440px){.video-start{width:48px;height:48px;font-size:19px}}

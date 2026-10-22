@@ -12,5 +12,10 @@ html=html.replace(/<link rel="stylesheet" href="(assets\/[^\"]+?)(?:\?[^\"]+)?">
 const hashes=scripts.map(code=>"'sha256-"+crypto.createHash('sha256').update(code).digest('base64')+"'");
 html=html.replace("script-src 'self'","script-src "+hashes.join(' '));
 html=html.replace('</body>',()=>scripts.map(code=>'<script>'+code+'</script>').join('\n')+'\n</body>');
+// Tutorial media is embedded once; the help panel uses it only after user action.
+for(const [asset,mime] of [['assets/tutorial.webm','video/webm'],['assets/tutorial-poster.jpg','image/jpeg']]){
+  const data='data:'+mime+';base64,'+fs.readFileSync(path.join(root,asset)).toString('base64');
+  html=html.split(asset).join(data);
+}
 fs.mkdirSync(path.dirname(destination),{recursive:true});fs.writeFileSync(destination,html);
 console.log('Offline file generated: '+destination);
