@@ -13,5 +13,24 @@ dialog{width:680px;max-width:calc(100vw - 24px);max-height:90dvh;overflow:auto;b
 .submission-checklist label{display:flex;gap:10px;align-items:flex-start;padding:10px 0;font-size:12px}.submission-checklist input{accent-color:var(--c-primary-2);margin-top:4px}
 .fld input[type=date],.fld input[type=time]{width:100%;border:1px solid var(--c-border);border-radius:8px;padding:11px 12px;background:var(--c-bg);color:var(--c-text);font:inherit;min-width:0}
 :root[data-tool=agentPanel] .hero{display:none}
+/* 首屏玻璃环：仅变换小尺寸现有图层，背景与玻璃模糊保持静态。 */
+@media screen and (min-width:781px) and (prefers-reduced-motion:no-preference) and (forced-colors:none){
+  .hero-progress .ring-one{animation:activity-ring-outer 18s linear infinite paused}
+  .hero-progress .ring-two{animation:activity-ring-inner 14s linear infinite paused}
+  .hero-progress .sculpture-core{animation:activity-star-breathe 5s ease-in-out infinite paused}
+  :root[data-motion=on][data-app-ready=true][data-step="1"]:not([data-tool]):not([data-busy]):not([data-page-hidden=true]) .hero-progress :is(.sculpture-ring,.sculpture-core){animation-play-state:running;will-change:transform}
+}
+@keyframes activity-ring-outer{
+  from{transform:rotate(-30deg) scaleX(.67)}
+  to{transform:rotate(330deg) scaleX(.67)}
+}
+@keyframes activity-ring-inner{
+  from{transform:rotate(42deg) scaleX(.6)}
+  to{transform:rotate(-318deg) scaleX(.6)}
+}
+@keyframes activity-star-breathe{
+  0%,100%{transform:scale(.96)}
+  50%{transform:scale(1.05)}
+}
 @media(max-width:600px){.activity-toolbar .btn{flex:1;font-size:11px;padding:9px}.activity-agenda article{flex-direction:column;gap:4px}.activity-task{flex-direction:column}.activity-task .task-controls{width:100%}.activity-funding{flex-wrap:wrap}.activity-bars label{grid-template-columns:65px 1fr 80px;font-size:10px;gap:7px}.agent-message{font-size:12px;padding:12px}.agent-actions{gap:6px}dialog{padding:18px}.activity-scenario{flex-wrap:wrap}.activity-scenario .btn-row{margin-top:0}.activity-inline{width:100%}}
 @media print{.activity-toolbar,.activity-task,.agent-actions,dialog,#agentPanel{display:none!important}#sec6{display:block!important}#sec6>h2,#sec6>.hint,#reviewList{display:none!important}.activity-report{max-height:none;overflow:visible;border:0;padding:0;color:#000;background:#fff}#sec5{display:none!important}}
