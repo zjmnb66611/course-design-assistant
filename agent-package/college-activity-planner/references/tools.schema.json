@@ -32,7 +32,8 @@
                 "文体活动",
                 "志愿服务",
                 "培训交流",
-                "迎新团建"
+                "迎新团建",
+                "自定义"
               ]
             },
             "people": {
@@ -66,6 +67,10 @@
             "organizer": {
               "type": "string",
               "maxLength": 100
+            },
+            "customKind": {
+              "type": "string",
+              "maxLength": 80
             }
           },
           "required": [
@@ -279,67 +284,7 @@
                 "maxLength": 20000
               },
               "basic": {
-                "type": "object",
-                "properties": {
-                  "title": {
-                    "type": "string",
-                    "maxLength": 120
-                  },
-                  "kind": {
-                    "enum": [
-                      "学术讲座",
-                      "文体活动",
-                      "志愿服务",
-                      "培训交流",
-                      "迎新团建"
-                    ]
-                  },
-                  "people": {
-                    "type": "string",
-                    "pattern": "^(?:[1-9]\\d{0,4}|100000)?$"
-                  },
-                  "budget": {
-                    "type": "string",
-                    "pattern": "^(?:\\d+(?:\\.\\d{1,2})?)?$"
-                  },
-                  "date": {
-                    "type": "string",
-                    "pattern": "^(?:20\\d{2}-\\d{2}-\\d{2}|21\\d{2}-\\d{2}-\\d{2}|2200-\\d{2}-\\d{2})?$"
-                  },
-                  "time": {
-                    "type": "string",
-                    "pattern": "^(?:(?:[01]\\d|2[0-3]):[0-5]\\d)?$"
-                  },
-                  "duration": {
-                    "type": "string",
-                    "maxLength": 4
-                  },
-                  "venue": {
-                    "type": "string",
-                    "maxLength": 200
-                  },
-                  "goal": {
-                    "type": "string",
-                    "maxLength": 1500
-                  },
-                  "organizer": {
-                    "type": "string",
-                    "maxLength": 100
-                  }
-                },
-                "required": [
-                  "title",
-                  "kind",
-                  "people",
-                  "budget",
-                  "date",
-                  "time",
-                  "duration",
-                  "venue",
-                  "goal",
-                  "organizer"
-                ],
-                "additionalProperties": false
+                "$ref": "#/$defs/project/properties/basic"
               },
               "items": {
                 "type": "array",

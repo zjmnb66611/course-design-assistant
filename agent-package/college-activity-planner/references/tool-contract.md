@@ -16,7 +16,7 @@
 
 `format` 必须为 `college-activity-assistant`，`version` 为1。项目样例见 `examples/project.json`。必须包含 name、raw、basic、reservePercent、items、funding、tasks、approvals、scenarios；未知输出字段不采信。
 
-- basic：title、kind、people、budget、date、time、duration、venue、goal、organizer，均为字符串。日期为 YYYY-MM-DD、时刻为 HH:mm，未知条件留空。人数为1到100000的整数；时长15到1440分钟；金额最多两位小数、数量最多三位小数。
+- basic：title、kind、customKind、people、budget、date、time、duration、venue、goal、organizer，均为字符串。kind 支持五种预设及“自定义”；customKind 为自定义名称，最多80字，旧备份省略时补为空。日期为 YYYY-MM-DD、时刻为 HH:mm，未知条件留空。人数为1到100000的整数；时长15到1440分钟；金额最多两位小数、数量最多三位小数。
 - items：最多200项。id 为字母/数字/下划线/连字符，最长80；label、category、quantity、unit、unitPrice、actual、quote、source、note。actual 空白表示未核销；quote 仅 estimate/quoted，quoted 表示用户标记已询价。
 - funding：最多20项。id、name、amount、status（pending/confirmed）、source。确认状态来自用户记录，不等于系统验证到账。
 - tasks：最多100项。id、title、owner、offset、status（todo/doing/done）、note。offset 是相对活动日期的日历天数，-180到180的整数。

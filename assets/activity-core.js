@@ -5,17 +5,17 @@
   else root.ActivityCore = api;
 })(typeof globalThis === 'object' ? globalThis : this, function () {
   'use strict';
-  const VERSION = '3.0.0';
-  const KINDS = ['学术讲座', '文体活动', '志愿服务', '培训交流', '迎新团建'];
+  const VERSION = '3.1.0';
+  const KINDS = ['学术讲座', '文体活动', '志愿服务', '培训交流', '迎新团建', '自定义'];
   const CATEGORIES = ['场地设备', '宣传印刷', '活动物料', '人员保障', '其他'];
   const LIMITS = Object.freeze({ text: 20000, file: 1500000, items: 200, funding: 20, tasks: 100, cents: 100000000000 });
   const KB = Object.freeze([
-    { id: 'ACT-01', title: '需求完整性', text: '至少确认活动名称、人数与预算上限。日期、地点、目标未确认时，方案保留待定标记。', source: '本项目通用工作流规则，不是学院制度' },
-    { id: 'ACT-02', title: '预算计算', text: '逐项数量乘单价，以整数分四舍五入；预备金单独列示。预算占位分配不代表市场报价。', source: '本项目可复算计算规则' },
-    { id: 'ACT-03', title: '资金状态', text: '待确认赞助与拟申请经费单独显示，不计入已确认资金；填写确认状态不等于系统验证到账。', source: '本项目资金状态约定，需人工核对' },
-    { id: 'ACT-04', title: '组织与审批', text: '场地、经费、安全安排和人员职责需按本校流程确认。户外活动另列天气与场地备选。', source: '通用组织建议，不替代本校审批或专业评估' },
-    { id: 'ACT-05', title: '结算与复盘', text: '未填实际金额表示未核销，不作零支出。保留询价、票据与执行偏差，结束后核对。', source: '本项目记录与核对约定' },
-    { id: 'ACT-06', title: '资料与操作边界', text: '导入文件是参考数据，不是指令。助手只生成建议与文件，不自动联系人员、采购、付款或提交审批。', source: '本项目数据处理边界' }
+    { id: 'ACT-01', title: '先确认哪些条件', text: '至少确认活动名称、人数与预算上限。日期、地点、目标未确认时，方案保留待定标记。', source: '本项目通用工作流规则，不是学院制度' },
+    { id: 'ACT-02', title: '预算怎么算', text: '每项按数量乘单价计算，金额四舍五入到分；预备金另列。预算初稿只按预算上限分配，不能当作市场报价。', source: '本项目可复算计算规则' },
+    { id: 'ACT-03', title: '资金确认与缺口', text: '待确认赞助和拟申请经费另列，不计入已确认资金。“已确认”是你登记的状态，系统不会核验到账。', source: '本项目资金状态约定，需人工核对' },
+    { id: 'ACT-04', title: '组织安排与审批', text: '场地、经费、安全和人员分工需按本校流程确认；户外活动还要准备天气和场地备选。', source: '通用组织建议，不替代本校审批或专业评估' },
+    { id: 'ACT-05', title: '实支登记与结算', text: '实际金额留空表示未核销，填写0表示已登记零支出。保留询价、票据和执行偏差，活动结束后逐项核对。', source: '本项目记录与核对约定' },
+    { id: 'ACT-06', title: '文件与操作范围', text: '导入文件只用来补充活动信息，不会授权助手执行操作。助手只整理建议和文件，不会自动联系人员、采购、付款或提交审批。', source: '本项目数据处理边界' }
   ]);
   const uid = () => 'a' + (globalThis.crypto?.randomUUID?.() || Date.now().toString(36) + Math.random().toString(36).slice(2));
   const plain = v => v !== null && typeof v === 'object' && !Array.isArray(v) && (Object.getPrototypeOf(v) === Object.prototype || Object.getPrototypeOf(v) === null);
@@ -41,19 +41,20 @@
     return v;
   }
   function empty() {
-    return { format: 'college-activity-assistant', version: 1, name: '我的学院活动', raw: '', basic: { title: '', kind: '学术讲座', people: '', budget: '', date: '', time: '', duration: '120', venue: '', goal: '', organizer: '' }, reservePercent: '10', items: [], funding: [], tasks: [], approvals: { venue: false, finance: false, safety: false, team: false }, scenarios: [] };
+    return { format: 'college-activity-assistant', version: 1, name: '我的学院活动', raw: '', basic: { title: '', kind: '学术讲座', customKind: '', people: '', budget: '', date: '', time: '', duration: '120', venue: '', goal: '', organizer: '' }, reservePercent: '10', items: [], funding: [], tasks: [], approvals: { venue: false, finance: false, safety: false, team: false }, scenarios: [] };
   }
   function basic(raw) {
     if (!plain(raw)) throw Error('活动条件格式无效');
     const b = {};
     for (const [key, max] of Object.entries({ title: 120, people: 6, budget: 16, time: 5, duration: 4, venue: 200, goal: 1500, organizer: 100 })) b[key] = str(raw[key], max);
-    b.kind = choice(raw.kind, KINDS); b.date = date(raw.date);
+    b.kind = choice(raw.kind, KINDS); b.customKind = raw.customKind === undefined ? '' : str(raw.customKind, 80); b.date = date(raw.date);
     if (b.people && (!/^\d+$/.test(b.people) || +b.people < 1 || +b.people > 100000)) throw Error('人数应为 1 到 100000 的整数');
     if (b.budget) cents(b.budget);
     if (b.duration && (!/^\d+$/.test(b.duration) || +b.duration < 15 || +b.duration > 1440)) throw Error('时长应为 15 到 1440 分钟');
     if (b.time && !/^([01]\d|2[0-3]):[0-5]\d$/.test(b.time)) throw Error('开始时刻无效');
     return b;
   }
+  const kindLabel = b => b.kind === '自定义' ? b.customKind || '自定义活动' : b.kind;
   function items(raw) {
     if (!Array.isArray(raw) || raw.length > LIMITS.items) throw Error('预算明细最多 200 项');
     const ids = new Set();
@@ -90,10 +91,14 @@
     for (const key of Object.keys(p.approvals)) { if (typeof raw.approvals[key] !== 'boolean') throw Error('核对状态无效'); p.approvals[key] = raw.approvals[key]; }
     if (!Array.isArray(raw.scenarios) || raw.scenarios.length > 4) throw Error('最多保存 4 个对比方案');
     p.scenarios = raw.scenarios.map(s => { if (!plain(s)) throw Error('对比方案无效'); const reserve = str(s.reservePercent, 8); decimal(reserve, 2, 3000, '预备金比例'); return { name: str(s.name, 60), raw: str(s.raw ?? '', LIMITS.text), basic: basic(s.basic), items: items(s.items), funding: funding(s.funding), reservePercent: reserve }; });
+    for (const scenario of p.scenarios) calculateBudget(scenario);
     return p;
   }
   function analyze(project) {
-    const p = normalize(project); let subtotal = 0n, actual = 0n, actualCount = 0, confirmed = 0n, pending = 0n;
+    return calculateBudget(normalize(project));
+  }
+  function calculateBudget(p) {
+    let subtotal = 0n, actual = 0n, actualCount = 0, confirmed = 0n, pending = 0n;
     const category = Object.fromEntries(CATEGORIES.map(c => [c, 0]));
     const lines = p.items.map(i => {
       const value = (BigInt(quantity(i.quantity)) * BigInt(cents(i.unitPrice)) + 500n) / 1000n;
@@ -112,6 +117,8 @@
   function chineseNumber(s) {
     if (/^\d+(?:\.\d+)?$/.test(s)) return Number(s);
     const digits = { 零: 0, 〇: 0, 一: 1, 二: 2, 两: 2, 三: 3, 四: 4, 五: 5, 六: 6, 七: 7, 八: 8, 九: 9 }, units = { 十: 10, 百: 100, 千: 1000 };
+    if (/^[零〇一二两三四五六七八九]+$/.test(s)) return Number([...s].map(c => digits[c]).join(''));
+    if (/[百千万][一二两三四五六七八九]$/.test(s)) return NaN;
     let total = 0, section = 0, value = 0;
     for (const c of s) { if (/\d/.test(c)) value = value * 10 + Number(c); else if (Object.hasOwn(digits, c)) value = digits[c]; else if (units[c]) { section += (value || 1) * units[c]; value = 0; } else if (c === '万') { total += (section + value || 1) * 10000; section = 0; value = 0; } else return NaN; }
     return total + section + value;
@@ -119,37 +126,62 @@
   function parseBrief(text) {
     text = str(text, LIMITS.text); if (!text) throw Error('先说说活动想法，一句话也可以');
     const patch = {}, evidence = [], warnings = [], number = '([0-9零〇一二两三四五六七八九十百千万]+(?:\\.[0-9]+)?)';
-    const capture = (key, regex, convert = s => s) => { const m = text.match(regex); if (m) { const value = convert(m[1]); if (value != null && Number.isFinite(typeof value === 'number' ? value : 0)) { patch[key] = String(value); const index = text.indexOf(m[0]); evidence.push({ field: key, raw: m[0], line: text.slice(0, index).split(/\r?\n/).length }); } } };
-    capture('people', new RegExp(number + '\\s*(?:人|名同学|位同学)'), chineseNumber);
+    const capture = (key, regex, convert = s => s) => { const m = text.match(regex); if (m) { const value = convert(m[1]); if (typeof value === 'number' && !Number.isFinite(value)) { patch[key] = ''; warnings.push(({ people: '人数', budget: '预算', duration: '时长' }[key] || '数字') + '写法不明确，请用阿拉伯数字或完整中文数字填写'); } else if (value != null) { patch[key] = String(value); const index = text.indexOf(m[0]); evidence.push({ field: key, raw: m[0], line: text.slice(0, index).split(/\r?\n/).length }); } } };
+    capture('people', new RegExp(number + '\\s*(?:个?人|名同学|位同学)'), chineseNumber);
     capture('budget', new RegExp('(?:预算|经费|限额|不超过|最多花)[：:\\s]*(?:(?:控制在|调整为|调整到|改为|降低到|降到|压到|不超过|约为|为|是|约)[：:\\s]*)?(?:人民币)?' + number + '\\s*(?:元|块钱|块|人民币)'), chineseNumber);
     const title = text.match(/(?:活动名称|主题)[：:\s]+([^\n，。；]{1,120})/); if (title) patch.title = title[1];
-    if (!patch.title) { const m = text.match(/(?:办|举办|组织|策划)(?:一场|一个|一次)?([^，。\n]{2,24}?(?:讲座|活动|比赛|培训|团建|交流会|志愿服务))/); if (m) patch.title = m[1]; }
-    if (/志愿|公益/.test(text)) patch.kind = '志愿服务'; else if (/运动|比赛|文艺|晚会|球赛/.test(text)) patch.kind = '文体活动'; else if (/迎新|团建/.test(text)) patch.kind = '迎新团建'; else if (/培训|交流/.test(text)) patch.kind = '培训交流'; else if (/讲座|学术|分享/.test(text)) patch.kind = '学术讲座';
-    capture('venue', /(?:地点|场地)[：:\s]+([^\n，。；]{1,100})/);
+    if (!patch.title) { const m = text.match(/(?:办|举办|组织|策划)(?:一场|一个|一次|个)?([^，。\n]{2,24}?(?:讲座|活动|比赛|培训|团建|交流会|志愿服务|市集|集市|沙龙|展览|研讨会))/); if (m) patch.title = m[1]; }
+    const explicitKind = text.match(/(?:活动类型|自定义类型|类型)[：:\s]+([^\n，。；]{1,80})/);
+    if (explicitKind) { patch.kind = KINDS.includes(explicitKind[1].trim()) ? explicitKind[1].trim() : '自定义'; patch.customKind = patch.kind === '自定义' && explicitKind[1].trim() !== '自定义' ? explicitKind[1].trim() : ''; }
+    else if (/志愿|公益/.test(text)) patch.kind = '志愿服务'; else if (/运动|比赛|文艺|晚会|球赛/.test(text)) patch.kind = '文体活动'; else if (/迎新|团建/.test(text)) patch.kind = '迎新团建'; else if (/培训|交流/.test(text)) patch.kind = '培训交流'; else if (/讲座|学术|分享/.test(text)) patch.kind = '学术讲座';
+    else { const custom = text.match(/(?:校园|学院|社团|读书|科创|创意|文化)?(?:市集|集市|沙龙|展览|研讨会)/); if (custom) { patch.kind = '自定义'; patch.customKind = custom[0]; } }
+    capture('venue', /(?:地点|场地)(?:[：:\s]+|(?:改到|改为|调整到|在|是)[：:\s]*)([^\n，。；]{1,100})/);
+    const nextField = '(?:(?:活动名称|活动类型|地点|场地|主办|承办)[：:\\s]|(?:预算|经费|人数|预计人数|时长|日期|活动日期|开始时间|开始时刻|开始)(?=[：:\\s0-9零〇一二两三四五六七八九十百千万]))';
+    capture('goal', new RegExp('(?:活动目标|目标|目的)[：:\\s]+([^\\n；]{1,500}?)(?=[，,。]\\s*' + nextField + '|[；\\n]|$)'));
+    capture('time', /(?:开始时间|开始时刻|开始)(?:改为|改到|定在)?[：:\s]*((?:[01]?\d|2[0-3]):[0-5]\d)/, s => s.padStart(5, '0'));
+    capture('duration', new RegExp('(?:时长|持续|安排)(?:改为|改成|为|约)?[：:\\s]*' + number + '\\s*分钟'), chineseNumber);
+    if (!patch.duration) capture('duration', new RegExp('(?:时长|持续)(?:改为|改成|为|约)?[：:\\s]*' + number + '\\s*小时'), s => chineseNumber(s) * 60);
     capture('organizer', /(?:主办|承办)(?:单位)?[：:\s]+([^\n，。；]{1,100})/);
     const dm = text.match(/(20\d\d)[年/-](\d{1,2})[月/-](\d{1,2})日?/);
-    if (dm) { const candidate = `${dm[1]}-${dm[2].padStart(2, '0')}-${dm[3].padStart(2, '0')}`; try { patch.date = date(candidate); evidence.push({ field: 'date', raw: dm[0], line: text.slice(0, text.indexOf(dm[0])).split(/\r?\n/).length }); } catch (_) { patch.date = ''; warnings.push('日期无效，请手动确认'); } }
-    else if (/明天|下周|周末|月底|月\d{1,2}日/.test(text)) { patch.date = ''; warnings.push('相对或缺年份日期需要在需求页明确确认'); }
+    if (dm) { const candidate = `${dm[1]}-${dm[2].padStart(2, '0')}-${dm[3].padStart(2, '0')}`; try { patch.date = date(candidate); evidence.push({ field: 'date', raw: dm[0], line: text.slice(0, text.indexOf(dm[0])).split(/\r?\n/).length }); } catch (_) { patch.date = ''; warnings.push('这个日期无效，请在“活动日期”中选择具体年月日'); } }
+    else if (/明天|下周|周末|月底|月\d{1,2}日/.test(text)) { patch.date = ''; warnings.push('请在“活动日期”中选择具体年月日，暂不采用相对时间或缺年份日期'); }
     if (patch.people && (!/^\d+$/.test(patch.people) || +patch.people < 1 || +patch.people > 100000)) { patch.people = ''; warnings.push('人数超出范围，请手动填写'); }
     if (patch.budget) { try { cents(patch.budget); } catch (_) { patch.budget = ''; warnings.push('预算金额无效，请手动填写'); } }
+    if (patch.duration && (!/^\d+$/.test(patch.duration) || +patch.duration < 15 || +patch.duration > 1440)) { patch.duration = ''; warnings.push('活动时长请填写15到1440分钟'); }
     const budgetMatches = [...text.matchAll(new RegExp('(?:预算|经费|限额)[约为是：:\\s]*' + number + '\\s*(?:元|块)', 'g'))];
-    if (new Set(budgetMatches.map(m => chineseNumber(m[1]))).size > 1) { patch.budget = ''; warnings.push('原文有多个预算金额，请手动裁定'); }
-    const peopleMatches = [...text.matchAll(new RegExp(number + '\\s*(?:人|名同学|位同学)', 'g'))];
-    if (new Set(peopleMatches.map(m => chineseNumber(m[1]))).size > 1) { patch.people = ''; warnings.push('原文有多个人数，请手动裁定'); }
+    if (new Set(budgetMatches.map(m => chineseNumber(m[1]))).size > 1) { patch.budget = ''; warnings.push('原文预算不一致，请在“预算上限”中确认最终金额'); }
+    const peopleMatches = [...text.matchAll(new RegExp(number + '\\s*(?:个?人|名同学|位同学)', 'g'))];
+    if (new Set(peopleMatches.map(m => chineseNumber(m[1]))).size > 1) { patch.people = ''; warnings.push('原文人数不一致，请在“预计人数”中确认最终人数'); }
+    for (const [field, label, unit] of [['budget', '(?:预算|经费)', '(?:元|块钱|块)'], ['people', '(?:人数|参与人数)', '(?:个?人|名|位)']]) {
+      const changes = [...text.matchAll(new RegExp(label + '[^，。\\n]{0,24}?(?:改为|改成|调整为|调整到|降低到|降到|压到)[：:\\s]*' + number + '\\s*' + unit, 'g'))];
+      if (!changes.length) continue;
+      const values = new Set(changes.map(m => chineseNumber(m[1])));
+      if (values.size !== 1) { patch[field] = ''; const message = field === 'budget' ? '原文预算不一致，请在“预算上限”中确认最终金额' : '原文人数不一致，请在“预计人数”中确认最终人数'; if (!warnings.includes(message)) warnings.push(message); continue; }
+      if (![...values].every(Number.isFinite)) { patch[field] = ''; const message = (field === 'budget' ? '预算' : '人数') + '写法不明确，请用阿拉伯数字或完整中文数字填写'; if (!warnings.includes(message)) warnings.push(message); continue; }
+      const value = String([...values][0]);
+      if (field === 'people' && (!/^\d+$/.test(value) || +value < 1 || +value > 100000)) continue;
+      if (field === 'budget') { try { cents(value); } catch (_) { continue; } }
+      patch[field] = value;
+      const entry = changes.at(-1); evidence.push({ field, raw: entry[0], line: text.slice(0, entry.index).split(/\r?\n/).length });
+      const warning = field === 'budget' ? '原文预算不一致，请在“预算上限”中确认最终金额' : '原文人数不一致，请在“预计人数”中确认最终人数';
+      if (warnings.includes(warning)) warnings.splice(warnings.indexOf(warning), 1);
+    }
     return { patch, evidence, warnings, raw: text };
   }
   function missing(project) {
-    const b = basic(project.basic); return [['title', '活动名称'], ['people', '参与人数'], ['budget', '预算上限'], ['date', '活动日期'], ['venue', '活动地点'], ['goal', '活动目标']].filter(([k]) => b[k] === '').map(([field, label]) => ({ field, label }));
+    const b = basic(project.basic), fields = [['title', '活动名称'], ['people', '参与人数'], ['budget', '预算上限'], ['date', '活动日期'], ['venue', '活动地点'], ['goal', '活动目标']];
+    if (b.kind === '自定义') fields.push(['customKind', '自定义活动类型']);
+    return fields.filter(([k]) => b[k] === '').map(([field, label]) => ({ field, label }));
   }
   function suggestBudget(project, lean = false) {
-    const p = normalize(project); if (!p.basic.budget) throw Error('先填写预算上限，再生成可修改的占位预算');
+    const p = normalize(project); if (!p.basic.budget) throw Error('先填写预算上限，再生成预算初稿');
     const cap = cents(p.basic.budget), allocations = lean ? [15, 5, 25, 10, 5] : [25, 10, 25, 15, 5];
     const labels = ['场地与设备统筹', '宣传与印刷', '活动材料包', '现场保障物资', '其他必要支出'];
-    return labels.map((label, i) => ({ id: uid(), label, category: CATEGORIES[i], quantity: '1', unit: '批', unitPrice: money(Math.floor(cap * allocations[i] / 100)), actual: '', quote: 'estimate', source: 'ACT-02：按预算上限比例分配的占位金额，需替换为询价结果', note: lean ? '节约版分配假设，不是市场报价' : '标准版分配假设，不是市场报价' }));
+    return labels.map((label, i) => ({ id: uid(), label, category: CATEGORIES[i], quantity: '1', unit: '批', unitPrice: money(Math.floor(cap * allocations[i] / 100)), actual: '', quote: 'estimate', source: 'ACT-02：按预算上限比例分配，需用询价结果替换', note: lean ? '节约版分配假设，不是市场报价' : '标准版分配假设，不是市场报价' }));
   }
   function draftPlan(project) {
     const p = normalize(project), b = p.basic, duration = +(b.duration || 120), ratios = [10, 10, 55, 20, 5];
-    const names = ['签到与引导', '开场与规则说明', b.kind === '学术讲座' ? '主题分享与交流' : b.kind === '志愿服务' ? '分组服务与现场协调' : '主题活动与分组执行', '互动反馈与成果整理', '收尾与场地恢复'];
+    const names = ['签到与引导', '开场与规则说明', b.kind === '学术讲座' ? '主题分享与交流' : b.kind === '志愿服务' ? '分组服务与现场协调' : b.kind === '自定义' && b.customKind ? b.customKind + '与现场协调' : '主题活动与分组执行', '互动反馈与成果整理', '收尾与场地恢复'];
     let used = 0;
     const agenda = names.map((title, i) => { const minutes = i === names.length - 1 ? duration - used : Math.floor(duration * ratios[i] / 100); const start = used; used += minutes; return { title, startMinute: start, minutes, owner: i === 0 ? '签到组（待指定）' : i === 4 ? '后勤组（待指定）' : '执行组（待指定）' }; });
     const tasks = [['确认目标、人数与方案', -14, '统筹组'], ['按本校流程确认场地与审批', -10, '统筹组'], ['询价、核对经费与采购清单', -7, '财务组'], ['发布经审核的活动通知', -5, '宣传组'], ['确认人员分工与物资', -2, '执行组'], ['检查现场和备选安排', -1, '后勤组'], ['执行活动、记录问题', 0, '执行组'], ['核对票据、实际支出与反馈', 2, '财务组']].map(([title, offset, owner]) => ({ id: uid(), title, offset, owner, status: 'todo', note: '相对活动日期的建议节点，可按实际修改' }));
@@ -177,9 +209,10 @@
   }
   function report(project) {
     const p = normalize(project), a = analyze(p), plan = draftPlan(p), b = p.basic;
-    const lines = [`# ${b.title || p.name || '学院活动策划书'}`, '', '> 本机规则生成的工作草案，非审批结果；所有占位金额、日期及职责需核对。', '', '## 一、活动概况', `- 类型：${b.kind}`, `- 主办：${b.organizer || '待确认'}`, `- 目标：${b.goal || '待确认'}`, `- 日期：${b.date || '待确认'} ${b.time || '时刻待确认'}`, `- 地点：${b.venue || '待确认'}`, `- 人数：${b.people || '待确认'}`, '', '## 二、建议流程', ...plan.agenda.map(x => `- 第 ${x.startMinute} 分钟起，${x.minutes} 分钟：${x.title}；${x.owner}`), '', '## 三、预算明细（元）', ...a.lines.map(i => `- ${i.label}：${i.quantity} ${i.unit} × ${i.unitPrice} = ${money(i.subtotalCents)}；${i.quote === 'quoted' ? '用户标记已询价' : '估算待询价'}；来源：${i.source || '待补充'}`), `- 明细小计：${money(a.subtotalCents)}`, `- 预备金（${p.reservePercent}%）：${money(a.reserveCents)}`, `- 计划总额：${money(a.totalCents)}`, `- 预算上限：${a.ceilingCents === null ? '待确认' : money(a.ceilingCents)}`, `- 预算结余（负数为超支）：${a.balanceCents === null ? '待确认' : money(a.balanceCents)}`, `- 已确认资金（按用户记录）：${money(a.confirmedCents)}`, `- 待确认资金：${money(a.pendingCents)}`, `- 相对已确认资金的缺口：${money(a.fundingGapCents)}`, `- 已登记实际支出：${money(a.actualCents)}；未核销 ${a.unreconciled} 项`, '', '## 四、执行清单', ...p.tasks.map(t => `- [${t.status === 'done' ? 'x' : ' '}] ${taskDate(p, t) || '日期待定'} / ${t.title} / ${t.owner || '负责人待定'} / ${t.note}`), '', '## 五、风险与待确认', ...plan.risks.map(t => '- ' + t), ...review(p).map(x => `- ${x.level}：${x.text} [${x.reference}]`), '', '## 六、原始需求', p.raw || '手动填写', '', '## 七、规则来源', ...KB.map(k => `- [${k.id}] ${k.title}：${k.text}（${k.source}）`)];
+    const lines = [`# ${b.title || p.name || '学院活动策划书'}`, '', '> 这是一份本机规则生成的草案，不代表审批结果；估算金额、日期和人员职责仍需核对。', '', '## 一、活动概况', `- 类型：${kindLabel(b)}`, `- 主办：${b.organizer || '待确认'}`, `- 目标：${b.goal || '待确认'}`, `- 日期：${b.date || '待确认'} ${b.time || '时刻待确认'}`, `- 地点：${b.venue || '待确认'}`, `- 人数：${b.people || '待确认'}`, '', '## 二、建议流程', ...plan.agenda.map(x => `- ${x.startMinute}–${x.startMinute + x.minutes} 分钟：${x.title}；${x.owner}`), '', '## 三、预算明细（元）', ...a.lines.map(i => `- ${i.label}：${i.quantity} ${i.unit} × ${i.unitPrice} = ${money(i.subtotalCents)}；${i.quote === 'quoted' ? '用户标记已询价' : '估算待询价'}；来源：${i.source || '待补充'}`), `- 明细小计：${money(a.subtotalCents)}`, `- 预备金（${p.reservePercent}%）：${money(a.reserveCents)}`, `- 计划总额：${money(a.totalCents)}`, `- 预算上限：${a.ceilingCents === null ? '待确认' : money(a.ceilingCents)}`, `- 预算结余（负数为超支）：${a.balanceCents === null ? '待确认' : money(a.balanceCents)}`, `- 已确认资金（按用户记录）：${money(a.confirmedCents)}`, `- 待确认资金：${money(a.pendingCents)}`, `- 相对已确认资金的缺口：${money(a.fundingGapCents)}`, `- 已登记实际支出：${money(a.actualCents)}；未核销 ${a.unreconciled} 项`, '', '## 四、执行清单', ...p.tasks.map(t => `- [${t.status === 'done' ? 'x' : ' '}] ${taskDate(p, t) || '日期待定'} / ${t.title} / ${t.owner || '负责人待定'} / ${t.note}`), '', '## 五、风险与待确认', ...plan.risks.map(t => '- ' + t), ...review(p).map(x => `- ${x.level}：${x.text} [${x.reference}]`), '', '## 六、原始需求', p.raw || '手动填写', '', '## 七、规则来源', ...KB.map(k => `- [${k.id}] ${k.title}：${k.text}（${k.source}）`)];
     const actualIndex = lines.findIndex(line => line.startsWith('- 已登记实际支出'));
-    lines.splice(actualIndex + 1, 0, '- 实支与明细预算差额（不含预备金）：' + (a.actualVarianceCents === null ? '未全部核销，暂不判断' : money(a.actualVarianceCents) + ' 元'));
+    lines.splice(actualIndex + 1, 0, '- 已登记实支 − 明细预算（不含预备金，正数表示超出）：' + (a.actualVarianceCents === null ? (p.items.length ? '尚有实支未登记，暂不比较' : '尚无预算明细，暂不比较') : money(a.actualVarianceCents) + ' 元'));
+    if (!b.duration) lines.splice(lines.indexOf('## 二、建议流程') + 1, 0, '时长未填写，以下先按120分钟排布，请确认后调整。');
     return lines.join('\n');
   }
   const csvCell = v => { let s = String(v ?? ''); if (/^[\s\u0000-\u001f\u007f]*[=+\-@]/.test(s)) s = "'" + s; return '"' + s.replace(/"/g, '""') + '"'; };
@@ -200,11 +233,11 @@
     if (request.tool === 'knowledge_lookup') { const query = str(args.query, 300); return KB.filter(k => !query || (k.title + k.text + k.id).includes(query)); }
     const project = normalize(args.project);
     if (request.tool === 'draft_plan') return draftPlan(project);
-    if (request.tool === 'suggest_budget') return { items: suggestBudget(project, args.lean === true), assumption: '按预算上限比例分配的占位金额，非市场报价 [ACT-02]' };
+    if (request.tool === 'suggest_budget') return { items: suggestBudget(project, args.lean === true), assumption: '按预算上限比例分配的预算初稿，非市场报价 [ACT-02]' };
     if (request.tool === 'analyze_budget') return analyze(project);
     if (request.tool === 'review_activity') return review(project);
     if (request.tool === 'build_report') return { markdown: report(project) };
     throw Error('工具名称不在白名单中');
   }
-  return Object.freeze({ VERSION, KINDS, CATEGORIES, LIMITS, KB, uid, cents, quantity, money, empty, normalize, analyze, parseBrief, missing, suggestBudget, draftPlan, review, taskDate, report, csvCell, csv, ics, runTool });
+  return Object.freeze({ VERSION, KINDS, CATEGORIES, LIMITS, KB, uid, cents, quantity, money, empty, normalize, kindLabel, analyze, parseBrief, missing, suggestBudget, draftPlan, review, taskDate, report, csvCell, csv, ics, runTool });
 });

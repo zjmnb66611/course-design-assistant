@@ -16,7 +16,7 @@ const check = (name, value) => { assert.ok(value, name); report.checks.push(name
     const openOptions = async () => { if (!await page.locator('.workspace-options').evaluate(e => e.open)) await page.locator('.workspace-options summary').click(); };
     const download = async locator => { const pending = page.waitForEvent('download'); await locator.click(); const file = await pending; return fs.readFile(await file.path()); };
     await page.goto(url); await page.locator('#bootLoader').waitFor({ state: 'hidden' });
-    check('活动工作台加载且空项目不预装个人数据', (await snap()).items.length === 0 && await page.locator('html').getAttribute('data-ui-version') === '3.0.0');
+    check('活动工作台加载且空项目不预装个人数据', (await snap()).items.length === 0 && await page.locator('html').getAttribute('data-ui-version') === '3.1.0');
     check('首页不提前请求操作视频和封面', !report.requests.some(u => /activity-tutorial/.test(u)));
     await page.screenshot({ path: path.join(out, '02-activity-desktop.png'), fullPage: true });
     await page.locator('#taskText').fill('活动名称：学院科创分享会\n预计80人，预算2000元。\n日期：2026年11月10日\n地点：学院报告厅');
@@ -40,7 +40,7 @@ const check = (name, value) => { assert.ok(value, name); report.checks.push(name
     check('资金确认状态改变缺口', (await analysis()).confirmedCents === 10000 && (await analysis()).fundingGapCents === 17514);
     await page.locator('#budgetRows [data-action=deleteItem]').click(); check('预算明细可删除', (await snap()).items.length === 0); await page.locator('[data-action=undo]').click(); check('删除可撤销且重新核算', (await analysis()).totalCents === 27514);
     await page.locator('[data-action=addScenario]').click(); await page.locator('[data-action=leanBudget]').click();
-    check('节约版可生成且金额标明占位依据', (await analysis()).totalCents === 132000 && (await snap()).items.every(i => i.source.includes('占位')));
+    check('节约版可生成且金额标明占位依据', (await analysis()).totalCents === 132000 && (await snap()).items.every(i => i.source.includes('ACT-02') && i.quote === 'estimate'));
     await page.locator('[data-action=openCompare]').click();
     check('方案对比保留旧输入并独立核算', (await page.locator('#scenarioList').textContent()).includes('275.14'));
     await page.locator('[data-action=loadScenario]').click();
@@ -95,7 +95,7 @@ const check = (name, value) => { assert.ok(value, name); report.checks.push(name
     await page.screenshot({ path: path.join(out, '04-agent.png'), fullPage: true });
     await page.locator('#applyAgent').click(); check('明确应用后才写入活动项目', (await snap()).items.length === 5 && (await snap()).basic.people === '60');
     await page.locator('#b_budget').fill('1000'); await page.locator('#tab3').click(); await page.locator('#sec3 [data-action=openAgent]').click(); await page.locator('#agentInput').fill('检查当前预算'); await page.locator('#agentSend').click(); await page.waitForFunction(() => !CourseLoading.status().busy);
-    check('手动修改后助手读取新项目而不是旧上下文', (await page.locator('#agentMessages').textContent()).includes('超过上限，需要调整'));
+    check('手动修改后助手读取新项目而不是旧上下文', await page.evaluate(() => ActivityCore.analyze(agentContext).overBudget && agentContext.basic.budget === '1000' && !ActivityApp.agentStatus().hasProposal));
     await page.locator('#agentInput').fill('预算降低到900元，生成节约版'); await page.locator('#agentSend').click(); await page.waitForFunction(() => !CourseLoading.status().busy); await page.locator('#applyAgent').click();
     check('助手可生成节约版并重新核算', (await snap()).basic.budget === '900' && (await analysis()).totalCents === 59400);
     await page.locator('#tab4').click();

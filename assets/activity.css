@@ -1,6 +1,14 @@
 /* 仅补充活动明细、对话和编辑窗口；原 styles.css 与 liquid.css 保持不变。 */
 .activity-toolbar,.activity-inline,.agent-actions{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
 .activity-toolbar{margin:14px 0}.activity-inline{font-size:12px;color:var(--c-muted)}.activity-inline input{max-width:85px}
+.tool-link,a.btn,.text-btn,.help-button{text-decoration:none}
+.tool-link span{border:0;border-radius:0;padding:0;background:transparent;color:var(--c-muted)}
+input:focus:not(:focus-visible),select:focus:not(:focus-visible),textarea:focus:not(:focus-visible){outline:none;border-color:var(--c-primary-2);box-shadow:0 0 0 2px rgba(var(--accent-rgb),.12)}
+input:focus-visible,select:focus-visible,textarea:focus-visible{outline:2px solid var(--c-primary-2);outline-offset:3px}
+.agent-context{font-size:12px;line-height:1.9;color:var(--c-muted);padding:12px 0}
+.agent-proposal{margin:12px 0;padding:14px 16px;background:var(--c-soft);border-radius:14px;font-size:12px;line-height:1.9}
+.agent-proposal strong{display:block;margin-bottom:5px;color:var(--c-text)}.agent-proposal ul{padding-left:18px}
+.agent-actions .starter{white-space:normal;text-align:left}
 .activity-budget{min-width:920px}.activity-budget td{overflow-wrap:anywhere}.activity-budget td:first-child{min-width:140px}.activity-budget small{display:block;color:var(--c-muted);font-size:11px}.activity-budget .text-btn{padding:4px}
 .activity-agenda{display:grid;gap:10px;margin:15px 0}.activity-agenda article{padding:14px 16px;background:var(--c-soft);border-radius:12px;display:flex;justify-content:space-between;gap:15px;font-size:13px}.activity-agenda small{color:var(--c-muted);font-size:11px}
 .activity-funding,.activity-task,.activity-scenario{padding:15px 0;border-bottom:1px solid var(--c-border);display:flex;justify-content:space-between;gap:12px;align-items:flex-start}.activity-task>div:first-child,.activity-funding>div:first-child{min-width:0;flex:1}.activity-task b,.activity-funding b{font-size:13px;overflow-wrap:anywhere}.activity-task p,.activity-funding p{font-size:11px;color:var(--c-muted);margin-top:4px}.activity-task select{width:auto;max-width:110px;min-height:34px;padding:6px}.activity-task .task-controls{display:flex;gap:8px;flex-wrap:wrap;align-items:center}

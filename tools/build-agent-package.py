@@ -1,13 +1,14 @@
 from pathlib import Path
 import hashlib
 import json
+import re
 import zipfile
 
 root = Path(__file__).resolve().parent.parent
 source = root / 'agent-package/college-activity-planner'
 core = (root / 'assets/activity-core.js').read_bytes()
 destination = root / 'assets/activity-agent-package.zip'
-metadata = {'name': 'college-activity-planner', 'version': '3.0.0', 'type': 'portable-skill-and-local-tools', 'coreSha256': hashlib.sha256(core).hexdigest(), 'teleAgentPlatformVerified': False, 'note': '本项目接入资料包，不是TeleAgent官方配置格式；目标客户端导入和绑定需实际验收。'}
+metadata = {'name': 'college-activity-planner', 'version': re.search(r"const VERSION = '([^']+)';", core.decode('utf-8')).group(1), 'type': 'portable-skill-and-local-tools', 'coreSha256': hashlib.sha256(core).hexdigest(), 'teleAgentPlatformVerified': False, 'note': '本项目接入资料包，不是TeleAgent官方配置格式；目标客户端导入和绑定需实际验收。'}
 with zipfile.ZipFile(destination, 'w', zipfile.ZIP_DEFLATED) as z:
     for file in source.rglob('*'):
         if file.is_file(): z.write(file, Path('college-activity-planner') / file.relative_to(source))

@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="zh-CN" data-ui-version="3.0.0">
+<html lang="zh-CN" data-ui-version="3.1.0">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
@@ -9,14 +9,14 @@
 <meta name="description" content="面向学院与社团的活动工作台。需求整理、策划方案、预算核算、执行清单与独立助手。">
 <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; media-src 'self' data: blob:; connect-src 'none'; font-src 'self'; object-src 'none'; base-uri 'none'; form-action 'none'; worker-src 'none'">
 <title>活动智策 · 学院活动策划与预算助手</title>
-<link rel="stylesheet" href="assets/styles.css?v=3.0.0">
-<link rel="stylesheet" href="assets/liquid.css?v=3.0.0">
-<script src="assets/loading.js?v=3.0.0" defer></script>
-<script src="assets/activity-core.js?v=3.0.0" defer></script>
-<script src="assets/activity-app.js?v=3.0.0" defer></script>
-<script src="assets/activity-workspace.js?v=3.0.0" defer></script>
-<script src="assets/effects.js?v=3.0.0" defer></script>
-<link rel="stylesheet" href="assets/activity.css?v=3.0.0-loop1">
+<link rel="stylesheet" href="assets/styles.css?v=3.1.0">
+<link rel="stylesheet" href="assets/liquid.css?v=3.1.0">
+<script src="assets/loading.js?v=3.1.0" defer></script>
+<script src="assets/activity-core.js?v=3.1.0" defer></script>
+<script src="assets/activity-app.js?v=3.1.0" defer></script>
+<script src="assets/activity-workspace.js?v=3.1.0" defer></script>
+<script src="assets/effects.js?v=3.1.0" defer></script>
+<link rel="stylesheet" href="assets/activity.css?v=3.1.0">
 </head>
 <body>
 <div class="boot-loader" id="bootLoader" role="status" aria-live="polite"><div class="boot-content"><span class="boot-mark" aria-hidden="true">活</span><strong>活动智策</strong><div class="loading-orbit" aria-hidden="true"></div><p id="bootLabel">正在准备你的活动工作台…</p><a class="load-retry" href="">刷新重试</a></div></div>
@@ -27,29 +27,29 @@
 <canvas id="cursorTrail" aria-hidden="true"></canvas>
 <div class="app-shell" inert>
 <aside class="sidebar" aria-label="工作台导航">
-  <a class="brand" href="#" data-action="showStep" data-arg="1"><span class="brand-mark">活</span><span>活动智策<small>CAMPUS WORKSPACE</small></span></a>
+  <a class="brand" href="#" data-action="showStep" data-arg="1"><span class="brand-mark">活</span><span>活动智策<small>学院活动工作台</small></span></a>
   <div class="sidebar-caption">我的学院活动</div>
   <nav class="steps" aria-label="活动策划步骤"><div class="steps-inner" id="stepTabs"></div></nav>
   <div class="sidebar-caption">活动工具</div>
   <button class="tool-link" data-action="openCompare">方案对比 <span id="scenarioCount">0 / 4</span></button>
-  <button class="tool-link" data-action="openKnowledge">策划知识库</button>
+  <button class="tool-link" data-action="openKnowledge">策划参考</button>
   <a class="tool-link" href="agent.html">独立策划助手 <span>打开</span></a>
-  <div class="sidebar-bottom"><span class="online-dot"></span> 本机处理 · 无资料上传<small>活动策划 / 预算工作流 v3.0</small><span class="material-signature">LIQUID WORKSPACE <span>✦</span></span></div>
+  <div class="sidebar-bottom"><span class="online-dot"></span> 本机处理 · 无资料上传<small>活动策划 / 预算工作流 v3.1</small><span class="material-signature">策划 · 预算 · 执行 <span>✦</span></span></div>
 </aside>
 <main class="main-area" id="mainContent" tabindex="-1">
   <header class="topbar"><div class="breadcrumb">活动空间 <span>/</span> <b>学院活动策划</b></div><div class="topbar-controls"><button class="help-button" data-action="openGuide">使用说明</button><button type="button" class="motion-toggle" id="motionToggle" aria-pressed="true" aria-describedby="motionHint"><span aria-hidden="true">✦</span> <span id="motionLabel">动态效果</span><span class="toggle-track" aria-hidden="true"></span></button><span class="sr-only" id="motionHint">控制交互动画和数码光迹，遵循系统减少动态效果设置。</span><div class="topbar-status" id="workspaceStatus" role="status">准备开始</div></div></header>
   <div class="wrap">
-    <header class="hero"><div class="hero-copy"><div class="eyebrow">学院活动 · 策划与预算</div><h1>活动，<span>从一个想法开始。</span></h1><p class="sub">把想法变成方案，让每笔预算有依据。</p></div><div class="hero-progress"><div class="glass-sculpture" aria-hidden="true"><span class="sculpture-ring ring-one"></span><span class="sculpture-ring ring-two"></span><span class="sculpture-core">✦</span></div><span>当前步骤</span><b id="progressLabel">01 <small>/ 06</small></b><div class="progress-track"><span id="progressFill"></span></div><small id="progressHint">说说需求</small></div></header>
+    <header class="hero"><div class="hero-copy"><div class="eyebrow">学院活动 · 策划与预算</div><h1>活动，<span>从一个想法开始。</span></h1><p class="sub">整理活动方案，算清预算，安排团队分工。</p></div><div class="hero-progress"><div class="glass-sculpture" aria-hidden="true"><span class="sculpture-ring ring-one"></span><span class="sculpture-ring ring-two"></span><span class="sculpture-core">✦</span></div><span>当前步骤</span><b id="progressLabel">01 <small>/ 06</small></b><div class="progress-track"><span id="progressFill"></span></div><small id="progressHint">说说需求</small></div></header>
     <details class="workspace-options"><summary>项目与外观</summary>
     <section class="project-bar" aria-label="项目与外观设置">
       <label class="project-title">项目名称<input id="projectName" type="text" maxlength="80" value="我的学院活动" autocomplete="off"></label>
-      <div class="project-actions"><button class="btn btn-ghost btn-sm" data-action="saveProject">保存项目</button><button class="btn btn-ghost btn-sm" data-action="chooseProject">打开项目</button><input id="projectFile" type="file" accept=".json,application/json" hidden></div>
+      <div class="project-actions"><button class="btn btn-ghost btn-sm" data-action="saveProject">下载项目备份</button><button class="btn btn-ghost btn-sm" data-action="chooseProject">导入项目备份</button><input id="projectFile" type="file" accept=".json,application/json" hidden></div>
       <div class="appearance"><div class="theme-switch" role="group" aria-label="显示模式"><button data-action="setTheme" data-arg="light" aria-pressed="false">浅色</button><button data-action="setTheme" data-arg="dark" aria-pressed="false">深色</button><button data-action="setTheme" data-arg="system" aria-pressed="true">跟随系统</button></div><label class="sr-only" for="accentSelect">校园配色</label><select id="accentSelect" aria-label="校园配色"><option value="blue">校园蓝</option><option value="green">松柏绿</option><option value="plum">樱花紫</option></select></div>
     </section>
-    <div class="draft-bar"><label><input id="autoDraft" type="checkbox"> 开启本机草稿</label><span id="draftStatus">未开启，刷新前请保存项目。</span><button class="text-btn" id="restoreDraft" data-action="restoreDraft" hidden>恢复草稿</button><button class="text-btn" data-action="clearDraft">清除本机草稿</button></div>
+    <div class="draft-bar"><label><input id="autoDraft" type="checkbox"> 保存浏览器草稿</label><span id="draftStatus">草稿未开启，刷新前请下载项目备份。</span><button class="text-btn" id="restoreDraft" data-action="restoreDraft" hidden>恢复草稿</button><button class="text-btn" data-action="clearDraft">清除本机草稿</button></div>
     </details>
     <div id="globalMsg" role="status" aria-live="polite"></div>
-    <div class="notice-bar"><span class="notice-label">使用范围</span><div>策划草案与预算核对 · 资料在本机处理</div></div>
+    <div class="notice-bar"><span class="notice-label">本机处理</span><div>策划与预算初稿 · 资料不上传</div></div>
 
 <section class="card" id="sec1">
 <h2>先说说你想办什么活动</h2><div class="hint">一句想法、几项条件，或直接粘贴活动要求。</div>
@@ -57,41 +57,44 @@
 <div id="panePaste" class="paste-area"><label class="sr-only" for="taskText">活动需求</label><textarea id="taskText" maxlength="20000" placeholder="例如：想办一场学院迎新活动，120人，预算3000元。&#10;还没想好细节，也能先开始。"></textarea>
 <div class="intake-starters"><button class="starter" data-action="useStarter" data-arg="学术讲座">学术讲座</button><button class="starter" data-action="useStarter" data-arg="文体活动">文体活动</button><button class="starter" data-action="useStarter" data-arg="志愿服务">志愿服务</button></div></div>
 <div id="paneFile" hidden><input type="file" id="taskFile" accept=".txt,.md,text/plain,text/markdown"><div class="file-meta" id="fileMeta">TXT / Markdown，最大 1 MB、2万字；Word 内容可直接粘贴。</div></div>
-<div class="btn-row"><button class="btn btn-primary" data-action="parseTask">开始整理</button><button class="btn btn-ghost" data-action="clearTask">清空</button></div>
+<div class="btn-row"><button class="btn btn-primary" data-action="parseTask">开始整理</button><button class="btn btn-ghost" data-action="clearTask">清空输入</button></div>
 <div class="input-helper"><span id="charCount">0 字</span><span>缺少的条件会列出来，等你确认。</span></div>
 <div class="intake-shortcuts"><button class="text-btn" data-action="quickDemo">体验完整示例</button><button class="text-btn" data-action="manualEntry">手动填写</button><button class="text-btn" data-action="openAgent">让策划助手帮忙</button></div>
 <div id="parseMsg" role="status"></div><div id="parseResult"></div>
 </section>
-<section class="card" id="sec2" hidden><h2>确认活动需求</h2><div class="hint">已识别的条件带来源。日期、地点和经费按实际确认。</div>
+<section class="card" id="sec2" hidden><h2>确认活动需求</h2><div class="hint">核对活动条件，缺少的可以稍后补；有原文出处的会显示行号。</div>
 <div class="grid g2" id="basicFields"></div><div class="btn-row"><button class="btn btn-primary" data-action="generatePlan">生成策划草案</button><button class="btn btn-ghost" data-action="showStep" data-arg="1">返回需求</button></div><div id="basicError" role="alert"></div></section>
-<section class="card" id="sec3" hidden><h2>让活动有条理地展开</h2><div class="hint">流程是可修改的建议，负责人和审批仍需实际确认。</div>
+<section class="card" id="sec3" hidden><h2>让活动有条理地展开</h2><div class="hint">修改活动时长后可重新生成流程；详细内容可导出后编辑，负责人和审批需另行确认。</div>
 <div id="planOverview"></div><h3>建议流程</h3><div id="agendaList" class="activity-agenda"></div><details class="fold"><summary>风险与待确认事项</summary><div id="planRisks"></div></details>
 <div class="btn-row"><button class="btn btn-primary" data-action="showStep" data-arg="4">核算活动预算</button><button class="btn btn-ghost" data-action="generateTasks">生成执行清单</button><button class="btn btn-ghost" data-action="openAgent">请助手检查</button></div></section>
-<section class="card" id="sec4" hidden><h2>把每笔预算算清楚</h2><div class="hint">占位金额需询价。修改明细会同步重算，预备金单独列示。</div>
-<div class="activity-toolbar"><button class="btn btn-ghost btn-sm" data-action="suggestBudget">生成占位预算</button><button class="btn btn-ghost btn-sm" data-action="leanBudget">生成节约版</button><button class="btn btn-ghost btn-sm" data-action="addItem">添加明细</button><label class="activity-inline">预备金 %<input id="reservePercent" type="number" min="0" max="30" step=".01" value="10"></label></div>
+<section class="card" id="sec4" hidden><h2>把每笔预算算清楚</h2><div class="hint">预算初稿按上限比例分配，请询价后调整；询价状态由你填写，系统不核验报价。预备金单独列出。</div>
+<div class="activity-toolbar"><button class="btn btn-ghost btn-sm" data-action="suggestBudget">生成预算初稿</button><button class="btn btn-ghost btn-sm" data-action="leanBudget">生成节约版</button><button class="btn btn-ghost btn-sm" data-action="addItem">添加明细</button><label class="activity-inline">预备金 %<input id="reservePercent" type="number" min="0" max="30" step=".01" value="10"></label></div>
 <div class="tb-wrap"><table class="tb activity-budget"><thead><tr><th>项目与类别</th><th>数量 / 单位</th><th>单价 / 元</th><th>小计 / 元</th><th>实际支出 / 元</th><th>询价与来源</th><th>操作</th></tr></thead><tbody id="budgetRows"></tbody></table></div><div id="budgetError" role="alert"></div>
 <div class="kpi-grid" id="budgetSummary"></div><div id="budgetWarnings"></div>
-<details class="fold"><summary>资金来源与确认状态</summary><p class="hint">“已确认”是你的录入记录，不代表系统验证到账。待确认赞助不计入可用资金。</p><div id="fundingRows"></div><button class="btn btn-ghost btn-sm" data-action="addFunding">添加资金来源</button></details>
+<details class="fold"><summary>资金来源与确认状态</summary><p class="hint">只按你登记为“已确认”的资金计算缺口，系统不验证到账；待确认资金不计入。</p><div id="fundingRows"></div><button class="btn btn-ghost btn-sm" data-action="addFunding">添加资金来源</button></details>
 <div class="btn-row"><button class="btn btn-primary" data-action="addScenario">保存对比方案</button><button class="btn btn-ghost" data-action="showStep" data-arg="5">安排执行任务</button><button class="btn btn-ghost" data-action="undo">撤销上次修改</button></div></section>
-<section class="card" id="sec5" hidden><h2>事情有人做，进度看得见</h2><div class="hint">日期按活动日推算，可修改相对天数。没有活动日期时保留待定。</div><div class="btn-row"><button class="btn btn-ghost btn-sm" data-action="generateTasks">生成建议清单</button><button class="btn btn-ghost btn-sm" data-action="addTask">添加任务</button><button class="btn btn-ghost btn-sm" data-action="exportICS">导出执行日历</button></div><div id="taskRows"></div>
-<details class="fold"><summary>提交前人工核对</summary><div class="submission-checklist" id="approvalList"></div><p class="hint">勾选只记录人工核对，不代表获得学院审批。</p></details><div class="btn-row"><button class="btn btn-primary" data-action="buildReport">生成策划与预算报告</button></div></section>
-<section class="card" id="sec6" hidden><h2>把方案交付给团队</h2><div class="hint">报告包含原始需求、预算依据和待确认事项。修改输入后重新生成。</div>
-<div class="btn-row"><button class="btn btn-primary" data-action="buildReport">更新报告</button><button class="btn btn-ghost" data-action="exportMD">Markdown</button><button class="btn btn-ghost" data-action="exportDOC">Word 文档</button><button class="btn btn-ghost" data-action="exportCSV">预算 CSV</button><button class="btn btn-ghost" data-action="printReport">打印 / PDF</button></div><pre id="reportArea" class="report-view activity-report"></pre><div id="reviewList" class="check-list"></div></section>
-<section class="card" id="comparePanel" hidden><div class="section-head"><h2>活动方案对比</h2><button class="btn btn-ghost btn-sm" data-action="returnStep">返回活动</button></div><p class="hint">最多4项，载入后重新核算。对比只保留输入，不信任旧计算结果。</p><div id="scenarioList"></div></section>
-<section class="card" id="knowledgePanel" hidden><div class="section-head"><h2>活动策划知识库</h2><button class="btn btn-ghost btn-sm" data-action="returnStep">返回活动</button></div><p class="hint">本项目通用工作流规则，不是学校制度或市场报价。具体要求以学院文件为准。</p><div id="knowledgeList"></div></section>
+<section class="card" id="sec5" hidden><h2>事情有人做，进度看得见</h2><div class="hint">任务日期按活动日推算，可调整提前或延后的天数；活动日期未填时显示待定。</div><div class="btn-row"><button class="btn btn-ghost btn-sm" data-action="generateTasks">生成建议清单</button><button class="btn btn-ghost btn-sm" data-action="addTask">添加任务</button><button class="btn btn-ghost btn-sm" data-action="exportICS">导出执行日历</button></div><div id="taskRows"></div>
+<details class="fold"><summary>交付前核对</summary><div class="submission-checklist" id="approvalList"></div><p class="hint">勾选只记录人工核对，不代表获得学院审批。</p></details><div class="btn-row"><button class="btn btn-primary" data-action="buildReport">生成策划与预算报告</button></div></section>
+<section class="card" id="sec6" hidden><h2>把方案交付给团队</h2><div class="hint">报告保留原文、预算依据和待确认事项，修改输入后请重新生成。Word 导出为 HTML 兼容 .doc。</div>
+<div class="btn-row"><button class="btn btn-primary" data-action="buildReport">更新报告</button><button class="btn btn-ghost" data-action="exportMD">Markdown</button><button class="btn btn-ghost" data-action="exportDOC">Word 兼容 .doc</button><button class="btn btn-ghost" data-action="exportCSV">预算 CSV</button><button class="btn btn-ghost" data-action="printReport">打印 / PDF</button></div><pre id="reportArea" class="report-view activity-report"></pre><div id="reviewList" class="check-list"></div></section>
+<section class="card" id="comparePanel" hidden><div class="section-head"><h2>活动方案对比</h2><button class="btn btn-ghost btn-sm" data-action="returnStep">返回活动</button></div><p class="hint">最多保存4个方案。载入时只读取支持的输入并重新核算，不沿用旧计算结果。</p><div id="scenarioList"></div></section>
+<section class="card" id="knowledgePanel" hidden><div class="section-head"><h2>策划参考与规则</h2><button class="btn btn-ghost btn-sm" data-action="returnStep">返回活动</button></div><p class="hint">以下是本项目的通用建议与计算约定，不是学校制度或市场报价；具体要求以学院文件为准。</p><div id="knowledgeList"></div></section>
 <section class="card guide-panel" id="guidePanel" hidden><div class="section-head"><h2>从想法到一份可执行方案</h2><button class="btn btn-ghost btn-sm" data-action="returnStep">返回活动</button></div>
-<div class="guide-layout"><div class="guide-video-area"><div class="guide-player"><video id="guideVideo" controls playsinline preload="none" data-video-src="assets/activity-tutorial.webm" data-poster-src="assets/activity-tutorial-poster.jpg" aria-label="学院活动策划真实操作演示，中文字幕，无音轨"></video><button class="video-start" id="guidePlayButton" data-action="playGuide" aria-label="播放操作演示">▶</button></div><p>真实浏览器操作示例 · 中文字幕 · 无音轨。金额为演示占位，使用前需询价。</p><p id="guideVideoError" hidden>当前无法播放，请按右侧文字步骤操作。</p></div><ol class="guide-steps"><li><button data-action="seekGuide" data-arg="0"><span>1</span>说出需求</button><p>粘贴活动要求，或输入活动类型、人数与预算。</p></li><li><button data-action="seekGuide" data-arg="4"><span>2</span>核对条件</button><p>补齐目标、日期、地点和组织信息，再查看策划草案。</p></li><li><button data-action="seekGuide" data-arg="10"><span>3</span>询价与核算</button><p>把占位预算换成实际询价；区分已确认和待确认资金，登记实际支出。</p></li><li><button data-action="seekGuide" data-arg="16"><span>4</span>分工与交付</button><p>修改执行任务，核对审批与现场安排，导出报告、预算和日历。</p></li></ol></div>
-<details class="fold"><summary>独立助手与 TeleAgent 有什么区别？</summary><p>网页助手是可解释的本地规则工作流，展示实际调用的策划、预算与检查工具，没有连接大模型。TeleAgent 接入包包含技能提示词、知识库和相同核算工具，需在平台账号中实际导入与验收。</p></details>
-<details class="fold"><summary>数据与估价如何处理？</summary><p>项目在本机处理。按需开启本机草稿，换设备请下载备份。预算模板按上限比例给出占位金额，不是实时市场价格。没有实际支出的项目显示未核销；未确认赞助不视为可用资金。</p></details>
+<div class="guide-layout"><div class="guide-video-area"><div class="guide-player"><video id="guideVideo" controls playsinline preload="none" data-video-src="assets/activity-tutorial.webm" data-poster-src="assets/activity-tutorial-poster.jpg" aria-label="学院活动策划真实操作演示，中文字幕，无音轨"></video><button class="video-start" id="guidePlayButton" data-action="playGuide" aria-label="播放操作演示">▶</button></div><p>实际操作演示，中文字幕、无声音；金额仅供演示，使用前请询价。</p><p id="guideVideoError" hidden>视频暂时无法播放，可按文字步骤继续操作。</p></div><ol class="guide-steps"><li><button data-action="seekGuide" data-arg="0"><span>1</span>说出需求</button><p>粘贴活动要求，或输入活动类型、人数与预算。</p></li><li><button data-action="seekGuide" data-arg="4"><span>2</span>核对条件</button><p>补齐目标、日期、地点和组织信息，再查看策划草案。</p></li><li><button data-action="seekGuide" data-arg="10"><span>3</span>询价与核算</button><p>按实际询价修改预算初稿，分别记录已确认和待确认资金，再登记实际支出。</p></li><li><button data-action="seekGuide" data-arg="16"><span>4</span>分工与交付</button><p>修改执行任务，核对审批与现场安排，导出报告、预算和日历。</p></li></ol></div>
+<details class="fold"><summary>独立助手与 TeleAgent 有什么区别？</summary><p>网页助手能整理需求、检查预算、列分工并起草通知，处理过程可以查看。它使用本地规则，未连接大模型。TeleAgent 接入包提供技能、知识库和相同核算工具，需在你的平台账号中导入并测试，目前尚未完成平台实测。</p></details>
+<details class="fold"><summary>数据存在哪里？金额能直接用吗？</summary><p>资料在本机处理。浏览器草稿只留在当前浏览器，换设备请下载并导入备份。预算初稿按上限比例分配，不是市场报价。实支留空表示未核销，填写0表示已登记零支出；待确认赞助不计入已确认资金。</p></details>
 <details class="fold"><summary>旧课设项目还能使用吗？</summary><p>旧版源代码已单独备份，旧数据键不被覆盖。活动助手不解释课设项目格式；请在原版本打开原课设备份。</p></details>
 <div class="btn-row"><a class="btn btn-ghost" href="assets/activity-agent-package.zip" download="学院活动策划-TeleAgent接入包.zip">下载 TeleAgent 接入包</a><a class="btn btn-ghost" href="agent.html">打开独立策划助手</a></div></section>
-<section class="card" id="agentPanel" hidden><div class="section-head"><div><h2>独立策划助手</h2><p class="hint">本地规则工作流 · 工具调用可追溯 · 未连接大模型</p></div><button class="btn btn-ghost btn-sm" data-action="returnStep">返回活动</button></div>
-<div class="agent-actions"><button class="starter" data-action="agentStarter" data-arg="想策划一次学院迎新活动，120人，预算3000元">帮我策划活动</button><button class="starter" data-action="agentStarter" data-arg="检查当前预算和资金缺口">检查预算</button><button class="starter" data-action="agentStarter" data-arg="生成节约版预算并检查风险">做节约方案</button></div>
+<section class="card" id="agentPanel" hidden><div class="section-head"><div><h2>独立策划助手</h2><p class="hint">在本机整理策划与预算，未连接大模型</p></div><button class="btn btn-ghost btn-sm" data-action="returnStep">返回活动</button></div>
+<div class="agent-actions"><button class="starter" data-action="agentStarter" data-arg="想策划一次学院迎新活动，120人，预算3000元">帮我策划活动</button><button class="starter" data-action="agentStarter" data-arg="检查当前预算和资金缺口">检查预算</button><button class="starter" data-action="agentStarter" data-arg="生成节约版预算并检查风险">做节约方案</button><button class="starter" data-action="agentStarter" data-arg="帮我生成分工清单">列分工</button><button class="starter" data-action="agentStarter" data-arg="帮我写活动通知">写活动通知</button><button class="starter" data-action="agentStarter" data-arg="预备金是什么意思">使用答疑</button></div>
+<div id="agentContext" class="agent-context" aria-live="polite"></div>
 <div id="agentMessages" class="agent-messages" role="log" aria-label="策划助手对话"></div><label class="sr-only" for="agentInput">给策划助手的需求</label><textarea id="agentInput" rows="3" maxlength="20000" placeholder="例如：学院想办一场交流活动，80人，经费2000元，先帮我列出需要确认的事项。"></textarea>
+<div id="agentProposal" class="agent-proposal" hidden><strong>应用前，先看看会改哪些内容</strong><ul id="agentChanges"></ul><button class="text-btn" data-action="discardAgent">放弃这份建议</button></div>
 <div class="btn-row"><button class="btn btn-primary" id="agentSend" data-action="runAgent">交给助手整理</button><button class="btn btn-ghost" data-action="applyAgent" id="applyAgent" disabled>应用建议到活动</button><button class="btn btn-ghost" data-action="resetAgent">清空对话</button></div>
-<details class="fold"><summary>查看实际工具调用记录</summary><pre id="agentTrace" class="activity-trace">尚未调用工具。</pre></details>
-<details class="fold"><summary>在 TeleAgent 中使用</summary><p class="hint">下载接入包后按说明导入技能、知识库和本机核算工具。此包不是已发布智能体，平台运行仍需实际验证。</p><div class="btn-row"><a class="btn btn-ghost" href="assets/activity-agent-package.zip" download="学院活动策划-TeleAgent接入包.zip">下载接入包</a><a class="btn btn-ghost" href="https://www.teleai.com.cn/product/teleagent" target="_blank" rel="noopener noreferrer">TeleAgent 官方入口</a></div></details>
+<button class="text-btn" id="exportAgentReply" data-action="exportAgentReply" disabled>下载本次答复</button>
+<details class="fold"><summary>查看处理过程与工具记录</summary><pre id="agentTrace" class="activity-trace">尚未调用工具。</pre></details>
+<details class="fold"><summary>在 TeleAgent 中使用</summary><p class="hint">接入包含技能、知识库和本机核算工具，下载后按说明配置。它不是已发布的 TeleAgent 智能体，还需要在平台账号中导入并测试。</p><div class="btn-row"><a class="btn btn-ghost" href="assets/activity-agent-package.zip" download="学院活动策划-TeleAgent接入包.zip">下载接入包</a><a class="btn btn-ghost" href="https://www.teleai.com.cn/product/teleagent" target="_blank" rel="noopener noreferrer">TeleAgent 官方入口</a></div></details>
 </section>
 <dialog id="rowDialog" aria-labelledby="rowDialogTitle"><form id="rowForm"><div class="section-head"><h2 id="rowDialogTitle">编辑明细</h2><button type="button" class="text-btn" data-action="closeRow">关闭</button></div><div class="grid g2" id="rowFields"></div><div id="rowError" role="alert"></div><div class="btn-row"><button type="submit" class="btn btn-primary">保存</button><button type="button" class="btn btn-ghost" data-action="closeRow">取消</button></div></form></dialog>
-<footer>活动智策 v3.0 · 学院活动策划与预算助手 <button class="text-btn" data-action="openGuide">使用说明</button></footer>
+<footer>活动智策 v3.1 · 学院活动策划与预算助手 <button class="text-btn" data-action="openGuide">使用说明</button></footer>
 </div></main></div></body></html>
